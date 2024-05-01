@@ -10,8 +10,11 @@ SDLFLAGS = -lSDL2 -L/usr/include/SDL2
 # defines what operations to do when making all
 all: main
 
+%.o: %.cpp Graph.h Equation.h
+	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS)
+
 # makes the main file with g++, flags amd target file of main.cpp. Outputs executable to main
-main: main.cpp
+main: main.o Graph.o Equation.o
 	$(CC) $(CFLAGS) -o $@ $^ $(SDLFLAGS)
 # gets rid of main executable and all -o files
 clean:
