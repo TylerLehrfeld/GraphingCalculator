@@ -2,15 +2,17 @@
 CC = g++
 
 #Wall gives all warnings. 
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g 
+
+#these flags allow sdl libraries to compile
+SDLFLAGS = -lSDL2 -L/usr/include/SDL2
 
 # defines what operations to do when making all
 all: main
 
 # makes the main file with g++, flags amd target file of main.cpp. Outputs executable to main
 main: main.cpp
-	$(CC) $(CFLAGS) -o $@ $^
-
+	$(CC) $(CFLAGS) -o $@ $^ $(SDLFLAGS)
 # gets rid of main executable and all -o files
 clean:
 	rm -f main
