@@ -37,6 +37,8 @@ void Graph::init()
     }
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
+
+    //draws the axis lines
     drawAxis();
 
     bool quit = false;
@@ -54,7 +56,6 @@ void Graph::init()
                 string inputEquation;
                 cout << "Enter your equation here" << endl;
                 cin >> inputEquation;
-                cout << inputEquation << endl;
                 graphLine(inputEquation);
             }
         }
@@ -84,26 +85,34 @@ void Graph::graphLine(string equationString)
     {
         Equation *equation = new Equation();
         equation->translate(equationString);
-        vector<float> variable_values{(float)(-WINDOW_WIDTH / 2 + i)};
-        float result = equation->evaluate(variable_values);
-        cout << result << endl;
-        result += WINDOW_HEIGHT/2;
-        if (result < WINDOW_HEIGHT)
+        vector<float> variable_values{(float)((float)(-WINDOW_WIDTH / 2 + i) / (float)WINDOW_WIDTH * (float)XRANGE)};
+        float result = (equation->evaluate(variable_values));
+        result = result/(float)YRANGE * (float)(WINDOW_HEIGHT);
+        
+        result += WINDOW_HEIGHT / 2;
+        if (result < WINDOW_HEIGHT && result > 0)
         {
-            if(!lastHeightInitialized) {
+            if (!lastHeightInitialized)
+            {
                 lastHeight = result;
                 lastHeightInitialized = true;
                 Uint32 *pixel = static_cast<Uint32 *>(pixels) + i + (WINDOW_HEIGHT - (int)result) * (pitch / sizeof(Uint32));
                 *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
-            } else {
-                if(lastHeight <= result) {
-                    for(int j = lastHeight; j <= result; j++) {
+            }
+            else
+            {
+                if (lastHeight <= result)
+                {
+                    for (int j = lastHeight; j <= result; j++)
+                    {
                         Uint32 *pixel = static_cast<Uint32 *>(pixels) + i + (WINDOW_HEIGHT - (int)j) * (pitch / sizeof(Uint32));
                         *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
-        
                     }
-                } else {
-                    for(int j = result; j <= lastHeight; j++) {
+                }
+                else
+                {
+                    for (int j = result; j <= lastHeight; j++)
+                    {
                         Uint32 *pixel = static_cast<Uint32 *>(pixels) + i + (WINDOW_HEIGHT - (int)j) * (pitch / sizeof(Uint32));
                         *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
                     }
@@ -149,19 +158,20 @@ void Graph::drawAxis()
     SDL_RenderPresent(renderer);
 }
 
-
-//0,0 is top left.
-//WINDOW_WIDTH-1,WINDOW_HEIGHT-1 is bottom right
-void Graph::drawPixel(int x, int y) {
-    if(x < 0 || x >= WINDOW_WIDTH) {
-        cout << "width out of bounds: " << x << (x > 0 ? " is greater than ": " is less than ") << (x > 0 ? WINDOW_WIDTH-1 : 0) << endl;
+// 0,0 is top left.
+// WINDOW_WIDTH-1,WINDOW_HEIGHT-1 is bottom right
+void Graph::drawPixel(int x, int y)
+{
+    if (x < 0 || x >= WINDOW_WIDTH)
+    {
+        cout << "width out of bounds: " << x << (x > 0 ? " is greater than " : " is less than ") << (x > 0 ? WINDOW_WIDTH - 1 : 0) << endl;
         return;
     }
-    if(y < 0 || y >= WINDOW_HEIGHT) {
-        cout << "height out of bounds: " << y << (y > 0 ? " is greater than ": " is less than ") << (y > 0 ? WINDOW_HEIGHT-1 : 0) << endl;
+    if (y < 0 || y >= WINDOW_HEIGHT)
+    {
+        cout << "height out of bounds: " << y << (y > 0 ? " is greater than " : " is less than ") << (y > 0 ? WINDOW_HEIGHT - 1 : 0) << endl;
         return;
     }
     Uint32 *pixel = static_cast<Uint32 *>(pixels) + x + y * (pitch / sizeof(Uint32));
     *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
-    
 }

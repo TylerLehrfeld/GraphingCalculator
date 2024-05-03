@@ -9,8 +9,10 @@ class Graph {
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Texture *texture;
-    int WINDOW_WIDTH = 1000;
-    int WINDOW_HEIGHT = 1000;
+    int WINDOW_WIDTH = 600;
+    int WINDOW_HEIGHT = 500;
+    float XRANGE = 10;
+    float YRANGE = 20;
     void* pixels;
     int pitch;
     void drawPixel(int x, int y);
