@@ -8,14 +8,20 @@ class Graph {
     private:
     SDL_Window *window;
     SDL_Renderer *renderer;
-    SDL_Texture* texture;
-    Equation equation;
+    SDL_Texture *texture;
     int WINDOW_WIDTH = 1000;
     int WINDOW_HEIGHT = 1000;
+    void* pixels;
+    int pitch;
+    void drawPixel(int x, int y);
 
     public:
     void init();
 
     void graphLine(string equationString);
     void drawAxis();
+
+    
+    ~Graph();
+    Graph();
 };

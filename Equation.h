@@ -29,4 +29,6 @@ class Equation {
     float evaluate(vector<float>);
 
     void iterate();
+    ~Equation();
+    Equation();
 };

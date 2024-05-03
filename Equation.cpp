@@ -6,9 +6,18 @@
 
 using namespace std;
 
+Equation::~Equation() {
+    //cout << "destroying equation" << endl;
+    equationPieces.clear();
+};
+
+Equation::Equation() {
+
+}
+
 void Equation::translate(string equationString)
 {
-    int i = 0;
+    size_t i = 0;
     string numberOrVariable = "";
     bool floatOrVariable = false;
     while (
@@ -45,9 +54,10 @@ void Equation::translate(string equationString)
             {
                 equationBit bit = {
                     true,
-                    NULL,
+                    '\0', //no variable charachter
                     stof(numberOrVariable),
-                    equationString[i]};
+                    equationString[i]
+                };
                 equationPieces.push_back(bit);
                 numberOrVariable = "";
             }
@@ -57,8 +67,8 @@ void Equation::translate(string equationString)
                 equationBit bit = {
                     false,
                     numberOrVariable[0],
-                    NULL,
-                    (char)equationString[i]};
+                    0, //no number yet
+                    equationString[i]};
                 equationPieces.push_back(bit);
                 numberOrVariable = "";
             }
@@ -76,9 +86,9 @@ void Equation::translate(string equationString)
     {
         equationBit bit = {
             floatOrVariable,
-            NULL,
+            '\0', // no variable for last number
             stof(numberOrVariable),
-            NULL,
+            '\0', // no operation for last number
         };
         equationPieces.push_back(bit);
     }
@@ -87,8 +97,9 @@ void Equation::translate(string equationString)
         equationBit bit = {
             false,
             numberOrVariable[0],
-            NULL,
-            NULL};
+            (float) NULL, // no number for last variable
+            (char) NULL // no operation for last variable
+        };
         equationPieces.push_back(bit);
     }
 }
@@ -96,21 +107,15 @@ void Equation::translate(string equationString)
 float Equation::evaluate(vector<float> variable_values)
 {
     vector<char> varList(variables.begin(), variables.end());
-    /*for(int i = 0; i < equationPieces.size() - 1; i++) {
-        if(equationPieces[i].numberOrVeariable) {
-            cout << "number: " << equationPieces[i].number << " operation: " << (equationPieces[i].operation == NULL ? ' ' : equationPieces[i].operation) << " " << endl;
-        }
-    }*/
-    for (int j = 0; j < equationPieces.size(); j++)
+    for (size_t j = 0; j < equationPieces.size(); j++)
     {
         if (!equationPieces[j].numberOrVeariable)
         {
-            for (int i = 0; i < varList.size(); i++)
+            for (size_t i = 0; i < varList.size(); i++)
             {
                 if (equationPieces[j].variable == varList[i])
                 {
                     equationPieces[j].number = variable_values[i];
-                    cout << "replacing " << equationPieces[j].variable <<" with " << variable_values[i] << endl;
                 }
             }
         }
@@ -182,11 +187,11 @@ float Equation::evaluate(vector<float> variable_values)
 
 void Equation::iterate()
 {
-    for (int i = 0; i < equationPieces.size() - 1; i++)
+    for (size_t i = 0; i < equationPieces.size() - 1; i++)
     {
         if (equationPieces[i].numberOrVeariable)
         {
-            cout << "number: " << equationPieces[i].number << " operation: " << (equationPieces[i].operation == NULL ? ' ' : equationPieces[i].operation) << " " << endl;
+            cout << "number: " << equationPieces[i].number << " operation: " << (equationPieces[i].operation == (char) NULL ? ' ' : equationPieces[i].operation) << " " << endl;
         }
     }
 }
