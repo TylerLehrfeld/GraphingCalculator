@@ -6,19 +6,13 @@ using namespace std;
 
 class Equation {
     private:
-    enum operations {
-        multiply = 0,
-        divide = 1,
-        add = 2,
-        subtract = 3,
-        power = 4
-    };
-
+    
     struct equationBit {
-        bool numberOrVeariable;
+        bool numberOrVariable;
         char variable;
         float number;
         char operation;
+        string innerFunction = "";
     };
     int parameterCount;
     vector<equationBit> equationPieces;

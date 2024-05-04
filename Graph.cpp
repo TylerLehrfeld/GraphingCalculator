@@ -87,6 +87,8 @@ void Graph::graphLine(string equationString)
         equation->translate(equationString);
         vector<float> variable_values{(float)((float)(-WINDOW_WIDTH / 2 + i) / (float)WINDOW_WIDTH * (float)XRANGE)};
         float result = (equation->evaluate(variable_values));
+        //cout << "input x = " << variable_values[0] << " result: " << result << endl;
+        //cout << "expected: " << pow(2, pow(-1*x,2))
         result = result/(float)YRANGE * (float)(WINDOW_HEIGHT);
         
         result += WINDOW_HEIGHT / 2;

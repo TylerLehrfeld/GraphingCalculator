@@ -6,17 +6,24 @@
 
 using namespace std;
 
-Equation::~Equation() {
-    //cout << "destroying equation" << endl;
+Equation::~Equation()
+{
     equationPieces.clear();
 };
 
-Equation::Equation() {
-
+Equation::Equation()
+{
 }
 
 void Equation::translate(string equationString)
 {
+    
+    if(equationString[equationString.size()-1] == ')') {
+        //this is to make it so there is always an operation after parentheses.
+        equationString += "+0";
+    }
+    bool negative = false;
+
     size_t i = 0;
     string numberOrVariable = "";
     bool floatOrVariable = false;
@@ -49,17 +56,24 @@ void Equation::translate(string equationString)
             equationString[i] == '*' ||
             equationString[i] == '^')
         {
+            if(numberOrVariable == "" && equationString[i] == '-') {
+                negative = true;
+            } else
             // this is a float
             if (floatOrVariable)
             {
                 equationBit bit = {
                     true,
-                    '\0', //no variable charachter
+                    '\0', // no variable charachter
                     stof(numberOrVariable),
-                    equationString[i]
-                };
+                    equationString[i]};
+                if(negative) {
+                    bit.number = bit.number * -1;
+                    negative = false;
+                }
                 equationPieces.push_back(bit);
                 numberOrVariable = "";
+
             }
             else
             {
@@ -67,11 +81,36 @@ void Equation::translate(string equationString)
                 equationBit bit = {
                     false,
                     numberOrVariable[0],
-                    0, //no number yet
+                    0, // no number yet
                     equationString[i]};
+
+                if(negative) {
+                    bit.number = bit.number * -1;
+                    negative = false;
+                }
                 equationPieces.push_back(bit);
                 numberOrVariable = "";
             }
+            
+        }
+        // we are looking at a section of the equation that is in parentheses, so we need to evaluate this section before proceeding
+        else if (equationString[i] == '(')
+        {
+            int j = i + 1;
+            while (equationString[j] != ')')
+            {
+                j++;
+            }
+            equationBit bit = {
+                NULL, //not a number or a variable
+                (char) NULL, //no variable
+                (float) NULL, //no number
+                equationString[j+1],
+                equationString.substr(i+1, j-i-1)
+            };
+            equationPieces.push_back(bit);
+            //skip past parentheses and operation
+            i = j+1;
         }
         else
         { // here we add the variable string (one char) to numberOrVariable
@@ -81,7 +120,7 @@ void Equation::translate(string equationString)
         }
         i++;
     }
-
+    
     if (floatOrVariable)
     {
         equationBit bit = {
@@ -97,8 +136,8 @@ void Equation::translate(string equationString)
         equationBit bit = {
             false,
             numberOrVariable[0],
-            (float) NULL, // no number for last variable
-            (char) NULL // no operation for last variable
+            (float)NULL, // no number for last variable
+            (char)NULL   // no operation for last variable
         };
         equationPieces.push_back(bit);
     }
@@ -109,7 +148,7 @@ float Equation::evaluate(vector<float> variable_values)
     vector<char> varList(variables.begin(), variables.end());
     for (size_t j = 0; j < equationPieces.size(); j++)
     {
-        if (!equationPieces[j].numberOrVeariable)
+        if (!equationPieces[j].numberOrVariable)
         {
             for (size_t i = 0; i < varList.size(); i++)
             {
@@ -120,6 +159,20 @@ float Equation::evaluate(vector<float> variable_values)
             }
         }
     }
+    //check for parentheses
+    for(int i = equationPieces.size() - 1; i >= 0; i--) {
+        if (equationPieces[i].innerFunction != "") {
+            Equation thisEq;
+            thisEq.translate(equationPieces[i].innerFunction);
+            float result = thisEq.evaluate(variable_values);
+            equationPieces[i].number = result; //set the number to the evaluated function
+            equationPieces[i].numberOrVariable = true; //indicate that this is a number
+            equationPieces[i].innerFunction = ""; //set the inner function as "" to indicate we are no longer using it
+            //operation should already be defined
+            //cout << "result at " << variable_values[0] << " = " << equationPieces[i].number << endl;
+        }
+    }
+
     // check for powers
     for (int i = equationPieces.size() - 2; i >= 0; i--)
     {
@@ -189,9 +242,9 @@ void Equation::iterate()
 {
     for (size_t i = 0; i < equationPieces.size() - 1; i++)
     {
-        if (equationPieces[i].numberOrVeariable)
+        if (equationPieces[i].numberOrVariable)
         {
-            cout << "number: " << equationPieces[i].number << " operation: " << (equationPieces[i].operation == (char) NULL ? ' ' : equationPieces[i].operation) << " " << endl;
+            cout << "number: " << equationPieces[i].number << " operation: " << (equationPieces[i].operation == (char)NULL ? ' ' : equationPieces[i].operation) << " " << endl;
         }
     }
 }
