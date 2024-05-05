@@ -7,7 +7,7 @@ using namespace std;
 
 Graph::~Graph()
 {
-    //cout << "destroying graph" << endl;
+    
 };
 
 Graph::Graph()
@@ -75,7 +75,6 @@ void Graph::init()
         }
     }
 
-    //cout << "destroying assets" << endl;
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -104,7 +103,6 @@ void Graph::graphLine(string equationString, bool isCDF, float testStatistic)
         float result = (equation->evaluate(variable_values));
 
         // cout << "input x = " << variable_values[0] << " result: " << result << endl;
-        // cout << "expected: " << pow(2, pow(-1*x,2))
         result = result / (float)YRANGE * (float)(WINDOW_HEIGHT);
 
         result += WINDOW_HEIGHT / 2;
@@ -142,7 +140,7 @@ void Graph::graphLine(string equationString, bool isCDF, float testStatistic)
             // draw red line from the pixel to the x axis if we are demonstrating a cdf
             if (isCDF && xVal >= testStatistic)
             {
-                for (int h = WINDOW_HEIGHT / 2; h < lastHeight; h++)
+                for (int h = WINDOW_HEIGHT / 2+1; h < lastHeight; h++)
                 {
                     Uint32 *pixel = static_cast<Uint32 *>(pixels) + i + (WINDOW_HEIGHT - (int)h) * (pitch / sizeof(Uint32));
                     *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 0, 0);
@@ -210,9 +208,9 @@ void Graph::tTest()
     cout << "starting T-test" << endl;
     int k = 0;
     int n = 0;
-    float sampleMean = 0;
-    float sampleStandardDeviation = 0;
-    float mean = 0;
+    double sampleMean = 0;
+    double sampleStandardDeviation = 0;
+    double mean = 0;
     cout << "enter sample mean: ";
     cin >> sampleMean;
     cout << "enter sample standard deviation: ";
@@ -223,14 +221,14 @@ void Graph::tTest()
     cin >> n;
     // k is degrees of freedom
     k = n - 1;
-    float dividend = tgamma((k + 1) / 2);
-    float divisor = tgamma((double)k / 2.0) * sqrt(k * M_PI);
-    float multiplier = dividend / divisor;
-    float exponent = -.5 * (k + 1);
+    double dividend = tgamma((k + 1) / 2);
+    double divisor = tgamma((double)k / 2.0) * sqrt(k * M_PI);
+    double multiplier = dividend / divisor;
+    double exponent = -.5 * (k + 1);
+    double testStatistic = abs((sampleMean - mean) / (sampleStandardDeviation / sqrt(n)));
+    cout << "your test statistic is " << testStatistic << endl;
     stringstream ss;
     ss << multiplier << "*(1+(x^2/" << k << "))^" << exponent;
-    // cout << ss.str() << endl;
-    float testStatistic = (sampleMean - mean) / (sampleStandardDeviation / sqrt(n));
     graphLine(ss.str(), true, testStatistic);
 }
 

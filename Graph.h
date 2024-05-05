@@ -11,8 +11,8 @@ class Graph {
     SDL_Texture *texture;
     int WINDOW_WIDTH = 1500;
     int WINDOW_HEIGHT = 1200;
-    float XRANGE = 20;
-    float YRANGE = 4;
+    float XRANGE = 10;
+    float YRANGE = 3;
     void* pixels;
     int pitch;
     void drawPixel(int x, int y);
