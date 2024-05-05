@@ -7,7 +7,7 @@ using namespace std;
 
 Graph::~Graph()
 {
-    cout << "destroying graph" << endl;
+    //cout << "destroying graph" << endl;
 };
 
 Graph::Graph()
@@ -75,7 +75,7 @@ void Graph::init()
         }
     }
 
-    cout << "destroying assets" << endl;
+    //cout << "destroying assets" << endl;
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
