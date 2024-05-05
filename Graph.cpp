@@ -1,5 +1,7 @@
 #include "Graph.h"
 #include <iostream>
+#include <sstream>
+#include <math.h>
 
 using namespace std;
 
@@ -23,7 +25,7 @@ void Graph::init()
         return;
     }
     window = SDL_CreateWindow(
-        "SDL window",
+        "Click Graph to enter equation",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         WINDOW_WIDTH,
@@ -37,8 +39,7 @@ void Graph::init()
     }
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-
-    //draws the axis lines
+    // draws the axis lines
     drawAxis();
 
     bool quit = false;
@@ -56,8 +57,21 @@ void Graph::init()
                 string inputEquation;
                 cout << "Enter your equation here" << endl;
                 cin >> inputEquation;
-                graphLine(inputEquation);
+                graphLine(inputEquation, false, 0);
             }
+            else if (event.type == SDL_KEYDOWN)
+            {
+                char keyPressed = (char)(event.key.keysym.sym);
+                if (keyPressed == 'n')
+                {
+                    normal();
+                }
+                else if (keyPressed == 't')
+                {
+                    tTest();
+                }
+            }
+            SDL_Delay(20);
         }
     }
 
@@ -68,7 +82,7 @@ void Graph::init()
     SDL_Quit();
 }
 
-void Graph::graphLine(string equationString)
+void Graph::graphLine(string equationString, bool isCDF, float testStatistic)
 {
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0)
     {
@@ -85,15 +99,18 @@ void Graph::graphLine(string equationString)
     {
         Equation *equation = new Equation();
         equation->translate(equationString);
-        vector<float> variable_values{(float)((float)(-WINDOW_WIDTH / 2 + i) / (float)WINDOW_WIDTH * (float)XRANGE)};
+        float xVal = (float)((float)(-WINDOW_WIDTH / 2 + i) / (float)WINDOW_WIDTH * (float)XRANGE);
+        vector<float> variable_values{xVal};
         float result = (equation->evaluate(variable_values));
-        //cout << "input x = " << variable_values[0] << " result: " << result << endl;
-        //cout << "expected: " << pow(2, pow(-1*x,2))
-        result = result/(float)YRANGE * (float)(WINDOW_HEIGHT);
-        
+
+        // cout << "input x = " << variable_values[0] << " result: " << result << endl;
+        // cout << "expected: " << pow(2, pow(-1*x,2))
+        result = result / (float)YRANGE * (float)(WINDOW_HEIGHT);
+
         result += WINDOW_HEIGHT / 2;
         if (result < WINDOW_HEIGHT && result > 0)
         {
+            // draw next pixel from the last one
             if (!lastHeightInitialized)
             {
                 lastHeight = result;
@@ -120,6 +137,16 @@ void Graph::graphLine(string equationString)
                     }
                 }
                 lastHeight = result;
+            }
+
+            // draw red line from the pixel to the x axis if we are demonstrating a cdf
+            if (isCDF && xVal >= testStatistic)
+            {
+                for (int h = WINDOW_HEIGHT / 2; h < lastHeight; h++)
+                {
+                    Uint32 *pixel = static_cast<Uint32 *>(pixels) + i + (WINDOW_HEIGHT - (int)h) * (pitch / sizeof(Uint32));
+                    *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 0, 0);
+                }
             }
         }
         variable_values.clear();
@@ -176,4 +203,47 @@ void Graph::drawPixel(int x, int y)
     }
     Uint32 *pixel = static_cast<Uint32 *>(pixels) + x + y * (pitch / sizeof(Uint32));
     *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
+}
+
+void Graph::tTest()
+{
+    cout << "starting T-test" << endl;
+    int k = 0;
+    int n = 0;
+    float sampleMean = 0;
+    float sampleStandardDeviation = 0;
+    float mean = 0;
+    cout << "enter sample mean: ";
+    cin >> sampleMean;
+    cout << "enter sample standard deviation: ";
+    cin >> sampleStandardDeviation;
+    cout << "enter hypothesis mean: ";
+    cin >> mean;
+    cout << "enter sample size: ";
+    cin >> n;
+    // k is degrees of freedom
+    k = n - 1;
+    float dividend = tgamma((k + 1) / 2);
+    float divisor = tgamma((double)k / 2.0) * sqrt(k * M_PI);
+    float multiplier = dividend / divisor;
+    float exponent = -.5 * (k + 1);
+    stringstream ss;
+    ss << multiplier << "*(1+(x^2/" << k << "))^" << exponent;
+    // cout << ss.str() << endl;
+    float testStatistic = (sampleMean - mean) / (sampleStandardDeviation / sqrt(n));
+    graphLine(ss.str(), true, testStatistic);
+}
+
+void Graph::normal()
+{
+    cout << "drawing normal curve" << endl
+         << "enter mean: ";
+    float mean = 0;
+    cin >> mean;
+    cout << "enter variance: ";
+    float variance = 0;
+    cin >> variance;
+    stringstream ss;
+    ss << "(1/(" << variance << "*(2*3.14159)^.5))*2.71828^(-.5*((x-" << mean << ")/" << variance << ")^2)";
+    graphLine(ss.str(), false, 0);
 }

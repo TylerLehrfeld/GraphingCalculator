@@ -66,9 +66,10 @@ void Equation::translate(string equationString)
                     true,
                     '\0', // no variable charachter
                     stof(numberOrVariable),
-                    equationString[i]};
+                    equationString[i],
+                    negative};
                 if(negative) {
-                    bit.number = bit.number * -1;
+                    //bit.number = bit.number * -1;
                     negative = false;
                 }
                 equationPieces.push_back(bit);
@@ -82,10 +83,11 @@ void Equation::translate(string equationString)
                     false,
                     numberOrVariable[0],
                     0, // no number yet
-                    equationString[i]};
+                    equationString[i],
+                    negative};
 
                 if(negative) {
-                    bit.number = bit.number * -1;
+                    //bit.number = bit.number * -1;
                     negative = false;
                 }
                 equationPieces.push_back(bit);
@@ -97,17 +99,30 @@ void Equation::translate(string equationString)
         else if (equationString[i] == '(')
         {
             int j = i + 1;
-            while (equationString[j] != ')')
+            int openCount = 1;
+            while (openCount != 0)
             {
-                j++;
+                if(equationString[j] == '(') {
+                    openCount++;
+                }
+                if(equationString[j] == ')') {
+                    openCount--;
+                }
+                if(openCount != 0) {
+                    j++;
+                }
             }
             equationBit bit = {
                 NULL, //not a number or a variable
                 (char) NULL, //no variable
                 (float) NULL, //no number
                 equationString[j+1],
+                negative,
                 equationString.substr(i+1, j-i-1)
             };
+            if(negative) {
+                negative = false;
+            }
             equationPieces.push_back(bit);
             //skip past parentheses and operation
             i = j+1;
@@ -127,8 +142,12 @@ void Equation::translate(string equationString)
             floatOrVariable,
             '\0', // no variable for last number
             stof(numberOrVariable),
-            '\0', // no operation for last number
+            '\0', // no operation for last number,
+            negative,
         };
+        if(negative) {
+            negative = false;
+        }
         equationPieces.push_back(bit);
     }
     else
@@ -137,8 +156,10 @@ void Equation::translate(string equationString)
             false,
             numberOrVariable[0],
             (float)NULL, // no number for last variable
-            (char)NULL   // no operation for last variable
+            (char)NULL,   // no operation for last variable,
+            negative
         };
+        negative = false;
         equationPieces.push_back(bit);
     }
 }
@@ -158,6 +179,9 @@ float Equation::evaluate(vector<float> variable_values)
                 }
             }
         }
+        if(equationPieces[j].negative) {
+            equationPieces[j].number *= -1;
+        }
     }
     //check for parentheses
     for(int i = equationPieces.size() - 1; i >= 0; i--) {
@@ -169,20 +193,19 @@ float Equation::evaluate(vector<float> variable_values)
             equationPieces[i].numberOrVariable = true; //indicate that this is a number
             equationPieces[i].innerFunction = ""; //set the inner function as "" to indicate we are no longer using it
             //operation should already be defined
-            //cout << "result at " << variable_values[0] << " = " << equationPieces[i].number << endl;
         }
     }
+
+    
 
     // check for powers
     for (int i = equationPieces.size() - 2; i >= 0; i--)
     {
         if (equationPieces[i].operation == '^')
         {
-            // cout << "in power" << endl;
             equationPieces[i].number = pow(equationPieces[i].number, equationPieces[i + 1].number);
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
-            // iterate();
         }
     }
 
@@ -191,11 +214,9 @@ float Equation::evaluate(vector<float> variable_values)
     {
         if (equationPieces[i].operation == '*')
         {
-            // cout << "in multiply" << endl;
             equationPieces[i].number = equationPieces[i].number * equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
-            // iterate();
         }
     }
     // check for division
@@ -203,11 +224,9 @@ float Equation::evaluate(vector<float> variable_values)
     {
         if (equationPieces[i].operation == '/')
         {
-            // cout << "in divide" << endl;
             equationPieces[i].number = equationPieces[i].number / equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
-            // iterate();
         }
     }
     // check for addition
@@ -215,11 +234,9 @@ float Equation::evaluate(vector<float> variable_values)
     {
         if (equationPieces[i].operation == '+')
         {
-            // cout << "in add" << endl;
             equationPieces[i].number = equationPieces[i].number + equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
-            // iterate();
         }
     }
     // check for subtraction
@@ -227,24 +244,12 @@ float Equation::evaluate(vector<float> variable_values)
     {
         if (equationPieces[i].operation == '-')
         {
-            // cout << "in subtract" << endl;
             equationPieces[i].number = equationPieces[i].number - equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
-            // iterate();
+            
         }
     }
 
     return equationPieces[0].number;
-}
-
-void Equation::iterate()
-{
-    for (size_t i = 0; i < equationPieces.size() - 1; i++)
-    {
-        if (equationPieces[i].numberOrVariable)
-        {
-            cout << "number: " << equationPieces[i].number << " operation: " << (equationPieces[i].operation == (char)NULL ? ' ' : equationPieces[i].operation) << " " << endl;
-        }
-    }
 }

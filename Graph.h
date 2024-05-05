@@ -9,18 +9,20 @@ class Graph {
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Texture *texture;
-    int WINDOW_WIDTH = 600;
-    int WINDOW_HEIGHT = 500;
-    float XRANGE = 10;
-    float YRANGE = 20;
+    int WINDOW_WIDTH = 1500;
+    int WINDOW_HEIGHT = 1200;
+    float XRANGE = 20;
+    float YRANGE = 4;
     void* pixels;
     int pitch;
     void drawPixel(int x, int y);
+    void tTest();
+    void normal();
 
     public:
     void init();
 
-    void graphLine(string equationString);
+    void graphLine(string equationString, bool, float);
     void drawAxis();
 
     

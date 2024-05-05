@@ -12,6 +12,7 @@ class Equation {
         char variable;
         float number;
         char operation;
+        bool negative;
         string innerFunction = "";
     };
     int parameterCount;
