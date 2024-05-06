@@ -2,12 +2,12 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include "statisticalOperations.h"
 
 using namespace std;
 
-Graph::~Graph()
-{
-    
+Graph::~Graph(){
+
 };
 
 Graph::Graph()
@@ -57,7 +57,7 @@ void Graph::init()
                 string inputEquation;
                 cout << "Enter your equation here" << endl;
                 cin >> inputEquation;
-                graphLine(inputEquation, false, 0);
+                graphLine(inputEquation, false, 0, LINE);
             }
             else if (event.type == SDL_KEYDOWN)
             {
@@ -70,6 +70,10 @@ void Graph::init()
                 {
                     tTest();
                 }
+                else if (keyPressed == 'c')
+                {
+                    chiSquaredTest();
+                }
             }
             SDL_Delay(20);
         }
@@ -81,7 +85,7 @@ void Graph::init()
     SDL_Quit();
 }
 
-void Graph::graphLine(string equationString, bool isCDF, float testStatistic)
+void Graph::graphLine(string equationString, bool isCDF, float testStatistic, int testNumber)
 {
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0)
     {
@@ -100,6 +104,7 @@ void Graph::graphLine(string equationString, bool isCDF, float testStatistic)
         equation->translate(equationString);
         float xVal = (float)((float)(-WINDOW_WIDTH / 2 + i) / (float)WINDOW_WIDTH * (float)XRANGE);
         vector<float> variable_values{xVal};
+        
         float result = (equation->evaluate(variable_values));
 
         // cout << "input x = " << variable_values[0] << " result: " << result << endl;
@@ -138,9 +143,12 @@ void Graph::graphLine(string equationString, bool isCDF, float testStatistic)
             }
 
             // draw red line from the pixel to the x axis if we are demonstrating a cdf
-            if (isCDF && xVal >= testStatistic)
+            if (isCDF &&
+                ((AlternativeHypNumber == 1 && (xVal <= -1 * testStatistic || xVal >= testStatistic)) ||
+                 (AlternativeHypNumber == 2 && xVal >= testStatistic) ||
+                 (AlternativeHypNumber == 3 && xVal <= -1 * testStatistic)))
             {
-                for (int h = WINDOW_HEIGHT / 2+1; h < lastHeight; h++)
+                for (int h = WINDOW_HEIGHT / 2 + 1; h < lastHeight; h++)
                 {
                     Uint32 *pixel = static_cast<Uint32 *>(pixels) + i + (WINDOW_HEIGHT - (int)h) * (pitch / sizeof(Uint32));
                     *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 0, 0);
@@ -205,12 +213,21 @@ void Graph::drawPixel(int x, int y)
 
 void Graph::tTest()
 {
-    cout << "starting T-test" << endl;
+
     int k = 0;
     int n = 0;
     double sampleMean = 0;
     double sampleStandardDeviation = 0;
     double mean = 0;
+    float a = 0;
+    cout << "starting one sample T-test" << endl;
+    cout << "Choose Alpha: " << endl;
+    cin >> a;
+    cout << "Choose alternative hypothesis: " << endl
+         << "1. µ ≠ µ₀" << endl
+         << "2. µ > µ₀" << endl
+         << "3. µ < µ₀" << endl;
+    cin >> AlternativeHypNumber;
     cout << "enter sample mean: ";
     cin >> sampleMean;
     cout << "enter sample standard deviation: ";
@@ -226,10 +243,25 @@ void Graph::tTest()
     double multiplier = dividend / divisor;
     double exponent = -.5 * (k + 1);
     double testStatistic = abs((sampleMean - mean) / (sampleStandardDeviation / sqrt(n)));
-    cout << "your test statistic is " << testStatistic << endl;
+    double area = 1 - tCDF(testStatistic, k);
+    if (AlternativeHypNumber == 1)
+    {
+        area *= 2;
+    }
+
     stringstream ss;
     ss << multiplier << "*(1+(x^2/" << k << "))^" << exponent;
-    graphLine(ss.str(), true, testStatistic);
+    cout << "your test statistic is " << testStatistic << endl;
+    cout << "the area under the curve is " << area << endl;
+    if (area <= a)
+    {
+        cout << "Because the area is less than " << a << ", your results are statistically significant and the alternative hypothesis is accepted" << endl;
+    }
+    else
+    {
+        cout << "Your area is greater than " << a << ", your null hypothesis cannot be rejected." << endl;
+    }
+    graphLine(ss.str(), true, testStatistic, T_TEST);
 }
 
 void Graph::normal()
@@ -243,5 +275,15 @@ void Graph::normal()
     cin >> variance;
     stringstream ss;
     ss << "(1/(" << variance << "*(2*3.14159)^.5))*2.71828^(-.5*((x-" << mean << ")/" << variance << ")^2)";
-    graphLine(ss.str(), false, 0);
+    graphLine(ss.str(), false, 0, NORMAL);
+}
+
+void Graph::chiSquaredTest() {
+    cout << "starting Chi-Squared test" << endl;
+    cout << "enter degrees of freedom" << endl;
+    int k;
+    cin >> k;
+    float factkovertwo = tgamma((double)k/2);
+    AlternativeHypNumber = 2;
+    graphLine("(x^(k/2-1)*e^(-x/2))/(2^(k/2)*)", true, 20, CHI_SQUARED);
 }

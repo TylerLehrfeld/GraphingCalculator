@@ -7,10 +7,15 @@ CFLAGS = -Wall -g
 #these flags allow sdl libraries to compile
 SDLFLAGS = -lSDL2 -L/usr/include/SDL2
 
+#boost flags for statistical operations 
+BSTFLAGS = -lboost_math_c99 -lboost_system
+
 # defines what operations to do when making all
 all: main
 
-%.o: %.cpp Graph.h Equation.h
+%.o: %.cpp Graph.h statisticalOperations.h
+	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS) $(BSTFLAGS)
+%.o: %.cpp Equation.h
 	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS)
 
 # makes the main file with g++, flags amd target file of main.cpp. Outputs executable to main
