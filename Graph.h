@@ -11,8 +11,8 @@ class Graph {
     SDL_Texture *texture;
     int WINDOW_WIDTH = 1500;
     int WINDOW_HEIGHT = 1000;
-    float XRANGE = 20;
-    float YRANGE = 4;
+    float XRANGE = 30;
+    float YRANGE = 2;
     void* pixels;
     int pitch;
     void drawPixel(int x, int y);
@@ -25,6 +25,7 @@ class Graph {
         T_TEST = 2,
         CHI_SQUARED = 3,
     };
+    int k;
 
     int AlternativeHypNumber;
     public:

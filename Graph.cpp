@@ -98,15 +98,23 @@ void Graph::graphLine(string equationString, bool isCDF, float testStatistic, in
     }
     bool lastHeightInitialized = false;
     int lastHeight = 0;
-    for (int i = 0; i < WINDOW_WIDTH; i++)
+    int start = 0;
+    if (testNumber == CHI_SQUARED)
+    {
+        start = WINDOW_WIDTH / 2;
+    }
+    for (int i = start; i < WINDOW_WIDTH; i++)
     {
         Equation *equation = new Equation();
         equation->translate(equationString);
         float xVal = (float)((float)(-WINDOW_WIDTH / 2 + i) / (float)WINDOW_WIDTH * (float)XRANGE);
-        vector<float> variable_values{xVal};
-        
-        float result = (equation->evaluate(variable_values));
-
+        vector<float> variable_values;
+        variable_values.push_back(xVal);
+        float result = 0;
+        if (testNumber != CHI_SQUARED || (testNumber == CHI_SQUARED && xVal > 0))
+        {
+            result = (equation->evaluate(variable_values));
+        }
         // cout << "input x = " << variable_values[0] << " result: " << result << endl;
         result = result / (float)YRANGE * (float)(WINDOW_HEIGHT);
 
@@ -214,7 +222,6 @@ void Graph::drawPixel(int x, int y)
 void Graph::tTest()
 {
 
-    int k = 0;
     int n = 0;
     double sampleMean = 0;
     double sampleStandardDeviation = 0;
@@ -278,12 +285,75 @@ void Graph::normal()
     graphLine(ss.str(), false, 0, NORMAL);
 }
 
-void Graph::chiSquaredTest() {
+void Graph::chiSquaredTest()
+{   
+    float a;
     cout << "starting Chi-Squared test" << endl;
-    cout << "enter degrees of freedom" << endl;
-    int k;
-    cin >> k;
-    float factkovertwo = tgamma((double)k/2);
+    cout << "Choose Alpha: " << endl;
+    cin >> a;
+    
+    cout << "enter rows" << endl;
+    int rows;
+    cin >> rows;
+    cout << "enter columns" << endl;
+    int columns;
+    cin >> columns;
+    double values[rows][columns];
+    double columnTotals[rows];
+    double rowTotals[columns];
+    double expected[rows][columns];
+
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            values[i][j] = 0;
+            columnTotals[i] = 0;
+            rowTotals[j] = 0;
+            expected[i][j] = 0;
+        }
+    }
+    double total = 0;
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            cin >> values[i][j];
+            columnTotals[i] += values[i][j];
+            rowTotals[j] += values[i][j];
+            total += values[i][j];
+        }
+    }
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            expected[i][j] = rowTotals[j] / total * columnTotals[i];
+        }
+    }
+    double testStat = 0;
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            testStat += pow((expected[i][j] - values[i][j]), 2) / expected[i][j];
+        }
+    }
     AlternativeHypNumber = 2;
-    graphLine("(x^(k/2-1)*e^(-x/2))/(2^(k/2)*)", true, 20, CHI_SQUARED);
+    k = (rows - 1) * (columns - 1);
+    double area = 1 - chiCDF(testStat, k);
+    cout << "the area under the curve is: " << area << endl;
+    stringstream ss;
+    double denominator = pow(2, (double)k / 2) * tgamma((double)k / 2);
+    ss << "(x^(" << (double)k / 2 << "-1)*2.71828^(-x/2))/" << denominator;
+    cout << "Your test statistic is " << testStat << endl;
+    if (area <= a)
+    {
+        cout << "Because the area is less than " << a << ", your results are statistically significant and the alternative hypothesis is accepted" << endl;
+    }
+    else
+    {
+        cout << "Your area is greater than " << a << ", your null hypothesis cannot be rejected." << endl;
+    }
+    graphLine(ss.str(), true, testStat, CHI_SQUARED);
 }
