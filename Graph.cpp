@@ -74,6 +74,14 @@ void Graph::init()
                 {
                     chiSquaredTest();
                 }
+                else if (keyPressed == '-')
+                {
+                    zoom(-1);
+                }
+                else if (keyPressed == '+')
+                {
+                    zoom(1);
+                }
             }
             SDL_Delay(20);
         }
