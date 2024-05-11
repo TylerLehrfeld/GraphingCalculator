@@ -7,7 +7,7 @@
 using namespace std;
 
 Graph::~Graph(){
-
+    equations.clear();
 };
 
 Graph::Graph()
@@ -57,6 +57,12 @@ void Graph::init()
                 string inputEquation;
                 cout << "Enter your equation here" << endl;
                 cin >> inputEquation;
+                lineElement newElement = {
+                    inputEquation,
+                    false,
+                    0,
+                    LINE};
+                equations.push_back(newElement);
                 graphLine(inputEquation, false, 0, LINE);
             }
             else if (event.type == SDL_KEYDOWN)
@@ -76,11 +82,11 @@ void Graph::init()
                 }
                 else if (keyPressed == '-')
                 {
-                    zoom(-1);
-                }
-                else if (keyPressed == '+')
-                {
                     zoom(1);
+                }
+                else if (keyPressed == '=')
+                {
+                    zoom(-1);
                 }
             }
             SDL_Delay(20);
@@ -127,7 +133,7 @@ void Graph::graphLine(string equationString, bool isCDF, float testStatistic, in
         result = result / (float)YRANGE * (float)(WINDOW_HEIGHT);
 
         result += WINDOW_HEIGHT / 2;
-        if (result < WINDOW_HEIGHT && result > 0)
+        if ((int)result < WINDOW_HEIGHT && (int)result > 0)
         {
             // draw next pixel from the last one
             if (!lastHeightInitialized)
@@ -276,6 +282,13 @@ void Graph::tTest()
     {
         cout << "Your area is greater than " << a << ", your null hypothesis cannot be rejected." << endl;
     }
+    lineElement newElement = {
+        ss.str(),
+        true,
+        testStatistic,
+        T_TEST
+    };
+    equations.push_back(newElement);
     graphLine(ss.str(), true, testStatistic, T_TEST);
 }
 
@@ -290,6 +303,13 @@ void Graph::normal()
     cin >> variance;
     stringstream ss;
     ss << "(1/(" << variance << "*(2*3.14159)^.5))*2.71828^(-.5*((x-" << mean << ")/" << variance << ")^2)";
+    lineElement newElement = {
+        ss.str(),
+        false,
+        0,
+        NORMAL
+    };
+    equations.push_back(newElement);
     graphLine(ss.str(), false, 0, NORMAL);
 }
 
@@ -363,5 +383,31 @@ void Graph::chiSquaredTest()
     {
         cout << "Your area is greater than " << a << ", your null hypothesis cannot be rejected." << endl;
     }
+    lineElement newElement = {
+        ss.str(),
+        true,
+        testStat,
+        CHI_SQUARED
+    };
+    equations.push_back(newElement);
     graphLine(ss.str(), true, testStat, CHI_SQUARED);
+}
+
+void Graph::zoom(int zoomDiff) {
+    if(XRANGE + zoomDiff <= 2 || YRANGE + zoomDiff <= 2) {
+        return;
+    }
+    XRANGE += zoomDiff;
+    YRANGE += zoomDiff;
+    SDL_RenderClear(renderer);
+    drawAxis();
+    for(size_t i = 0; i < equations.size(); i++) {
+        
+        graphLine(
+            equations[i].equationString,
+            equations[i].isCDF,
+            equations[i].testStat,
+            equations[i].testEnumValue
+        );
+    }
 }

@@ -4,21 +4,30 @@
 
 using namespace std;
 
+
+struct lineElement {
+    string equationString;
+    bool isCDF;
+    double testStat;
+    int testEnumValue;
+};
+
 class Graph {
-    private:
+private:
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Texture *texture;
     int WINDOW_WIDTH = 1500;
     int WINDOW_HEIGHT = 1000;
-    float XRANGE = 30;
-    float YRANGE = 2;
+    float XRANGE = 10;
+    float YRANGE = 10;
     void* pixels;
     int pitch;
     void drawPixel(int x, int y);
     void tTest();
     void normal();
     void chiSquaredTest();
+    void zoom(int);
     enum testEnum {
         LINE = 0,
         NORMAL = 1,
@@ -28,7 +37,8 @@ class Graph {
     int k;
 
     int AlternativeHypNumber;
-    public:
+    vector<lineElement> equations;
+public:
     void init();
 
     void graphLine(string equationString, bool, float, int);
@@ -38,4 +48,5 @@ class Graph {
     ~Graph();
     Graph();
 };
+
 
