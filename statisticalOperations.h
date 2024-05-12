@@ -1,3 +1,6 @@
+#ifndef OPERATIONS_H
+#define OPERATIONS_H
+
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
 
@@ -10,3 +13,5 @@ double chiCDF(double testStat, int degreesOfFreedom) {
     boost::math::chi_squared dist(degreesOfFreedom);
     return boost::math::cdf(dist, testStat);
 }
+
+#endif

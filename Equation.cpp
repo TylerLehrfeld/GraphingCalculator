@@ -133,11 +133,50 @@ void Equation::translate(string equationString)
             // skip past parentheses and operation
             i = j + 1;
         }
+
         else
-        { // here we add the variable string (one char) to numberOrVariable
-            floatOrVariable = false;
-            numberOrVariable += equationString[i];
-            variables.insert(equationString[i]);
+        {
+            if (i + 2 < equationString.length() && (equationString.substr(i, 3) == "sin" || equationString.substr(i, 3) == "cos"))
+            {
+                int j = i + 4;
+                int openCount = 1;
+                while (openCount != 0)
+                {
+                    if (equationString[j] == '(')
+                    {
+                        openCount++;
+                    }
+                    if (equationString[j] == ')')
+                    {
+                        openCount--;
+                    }
+                    if (openCount != 0)
+                    {
+                        j++;
+                    }
+                }
+                equationBit bit = {
+                    NULL,        // not a number or a variable
+                    (char)NULL,  // no variable
+                    (float)NULL, // no number
+                    equationString[j + 1],
+                    negative,
+                    equationString.substr(i, j - i + 1)};
+                if (negative)
+                {
+                    negative = false;
+                }
+                equationPieces.push_back(bit);
+                // skip past parentheses and operation
+                i = j + 1;
+            }
+            else
+            {
+                // here we add the variable string (one char) to numberOrVariable
+                floatOrVariable = false;
+                numberOrVariable += equationString[i];
+                variables.insert(equationString[i]);
+            }
         }
         i++;
     }
@@ -195,9 +234,25 @@ float Equation::evaluate(vector<float> variable_values)
     {
         if (equationPieces[i].innerFunction != "")
         {
-            Equation thisEq;
-            thisEq.translate(equationPieces[i].innerFunction);
-            float result = thisEq.evaluate(variable_values);
+            float result = 0;
+            if (equationPieces[i].innerFunction.substr(0, 3) == "sin")
+            {
+                Equation thisEq;
+                thisEq.translate(equationPieces[i].innerFunction.substr(4, equationPieces[i].innerFunction.length() - 5));
+                result = sin(thisEq.evaluate(variable_values));
+            }
+            else if (equationPieces[i].innerFunction.substr(0, 3) == "cos")
+            {
+                Equation thisEq;
+                thisEq.translate(equationPieces[i].innerFunction.substr(4, equationPieces[i].innerFunction.length() - 5));
+                result = cos(thisEq.evaluate(variable_values));
+            }
+            else
+            {
+                Equation thisEq;
+                thisEq.translate(equationPieces[i].innerFunction);
+                result = thisEq.evaluate(variable_values);
+            }
             equationPieces[i].number = result;         // set the number to the evaluated function
             equationPieces[i].numberOrVariable = true; // indicate that this is a number
             equationPieces[i].innerFunction = "";      // set the inner function as "" to indicate we are no longer using it

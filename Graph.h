@@ -1,3 +1,6 @@
+#ifndef GRAPH
+#define GRAPH
+
 #include <SDL2/SDL.h>
 #include "Equation.h"
 #include <string>
@@ -49,4 +52,5 @@ public:
     Graph();
 };
 
+#endif
 

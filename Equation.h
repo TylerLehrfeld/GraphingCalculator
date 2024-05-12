@@ -1,3 +1,6 @@
+#ifndef EQUATION
+#define EQUATION
+
 #include <string>
 #include <vector>
 #include <set>
@@ -27,3 +30,5 @@ class Equation {
     ~Equation();
     Equation();
 };
+
+#endif
