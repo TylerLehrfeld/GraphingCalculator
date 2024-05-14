@@ -3,15 +3,15 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include "Graph.h"
+#include "3DGraph.h"
 
 using namespace std;
 
 int main()
 {
     
-    Graph graph;
-    graph.init();
-    
+    ThreeDGraph threeDimensionalGraph;
+    threeDimensionalGraph.init();
     
     return 0;
 }

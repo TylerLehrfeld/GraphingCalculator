@@ -6,20 +6,15 @@
 
 using namespace std;
 
-Equation::~Equation()
-{
+Equation::~Equation() {
     equationPieces.clear();
 };
 
-Equation::Equation()
-{
-}
+Equation::Equation() {}
 
-void Equation::translate(string equationString)
-{
+void Equation::translate(string equationString) {
 
-    if (equationString[equationString.size() - 1] == ')')
-    {
+    if (equationString[equationString.size() - 1] == ')') {
         // this is to make it so there is always an operation after parentheses.
         equationString += "+0";
     }
@@ -29,8 +24,7 @@ void Equation::translate(string equationString)
     string numberOrVariable = "";
     bool floatOrVariable = false;
     while (
-        i < equationString.length())
-    {
+        i < equationString.length()) {
         // we first check if we are looking at a number
         if (
             equationString[i] == '0' ||
@@ -43,54 +37,45 @@ void Equation::translate(string equationString)
             equationString[i] == '7' ||
             equationString[i] == '8' ||
             equationString[i] == '9' ||
-            equationString[i] == '.')
-        {
+            equationString[i] == '.') {
             // if we are looking at a number, we add it to the numberorvariable feild
             floatOrVariable = true;
             numberOrVariable += equationString[i];
-        }
-        else if (
+        } else if (
             // if we get an operation charachter, we can
             equationString[i] == '+' ||
             equationString[i] == '-' ||
             equationString[i] == '/' ||
             equationString[i] == '*' ||
-            equationString[i] == '^')
-        {
-            if (numberOrVariable == "" && equationString[i] == '-')
-            {
+            equationString[i] == '^') {
+            if (numberOrVariable == "" && equationString[i] == '-') {
                 negative = true;
-            }
-            else
+            } else
                 // this is a float
-                if (floatOrVariable)
-                {
+                if (floatOrVariable) {
                     equationBit bit = {
                         true,
                         '\0', // no variable charachter
                         stof(numberOrVariable),
                         equationString[i],
-                        negative};
-                    if (negative)
-                    {
+                        negative
+                    };
+                    if (negative) {
                         // bit.number = bit.number * -1;
                         negative = false;
                     }
                     equationPieces.push_back(bit);
                     numberOrVariable = "";
-                }
-                else
-                {
+                } else {
                     // this is a variable
                     equationBit bit = {
                         false,
                         numberOrVariable[0],
                         0, // no number yet
                         equationString[i],
-                        negative};
+                        negative };
 
-                    if (negative)
-                    {
+                    if (negative) {
                         // bit.number = bit.number * -1;
                         negative = false;
                     }
@@ -99,22 +84,17 @@ void Equation::translate(string equationString)
                 }
         }
         // we are looking at a section of the equation that is in parentheses, so we need to evaluate this section before proceeding
-        else if (equationString[i] == '(')
-        {
+        else if (equationString[i] == '(') {
             int j = i + 1;
             int openCount = 1;
-            while (openCount != 0)
-            {
-                if (equationString[j] == '(')
-                {
+            while (openCount != 0) {
+                if (equationString[j] == '(') {
                     openCount++;
                 }
-                if (equationString[j] == ')')
-                {
+                if (equationString[j] == ')') {
                     openCount--;
                 }
-                if (openCount != 0)
-                {
+                if (openCount != 0) {
                     j++;
                 }
             }
@@ -124,9 +104,8 @@ void Equation::translate(string equationString)
                 (float)NULL, // no number
                 equationString[j + 1],
                 negative,
-                equationString.substr(i + 1, j - i - 1)};
-            if (negative)
-            {
+                equationString.substr(i + 1, j - i - 1) };
+            if (negative) {
                 negative = false;
             }
             equationPieces.push_back(bit);
@@ -134,24 +113,18 @@ void Equation::translate(string equationString)
             i = j + 1;
         }
 
-        else
-        {
-            if (i + 2 < equationString.length() && (equationString.substr(i, 3) == "sin" || equationString.substr(i, 3) == "cos"))
-            {
+        else {
+            if (i + 2 < equationString.length() && (equationString.substr(i, 3) == "sin" || equationString.substr(i, 3) == "cos")) {
                 int j = i + 4;
                 int openCount = 1;
-                while (openCount != 0)
-                {
-                    if (equationString[j] == '(')
-                    {
+                while (openCount != 0) {
+                    if (equationString[j] == '(') {
                         openCount++;
                     }
-                    if (equationString[j] == ')')
-                    {
+                    if (equationString[j] == ')') {
                         openCount--;
                     }
-                    if (openCount != 0)
-                    {
+                    if (openCount != 0) {
                         j++;
                     }
                 }
@@ -161,17 +134,14 @@ void Equation::translate(string equationString)
                     (float)NULL, // no number
                     equationString[j + 1],
                     negative,
-                    equationString.substr(i, j - i + 1)};
-                if (negative)
-                {
+                    equationString.substr(i, j - i + 1) };
+                if (negative) {
                     negative = false;
                 }
                 equationPieces.push_back(bit);
                 // skip past parentheses and operation
                 i = j + 1;
-            }
-            else
-            {
+            } else {
                 // here we add the variable string (one char) to numberOrVariable
                 floatOrVariable = false;
                 numberOrVariable += equationString[i];
@@ -181,8 +151,7 @@ void Equation::translate(string equationString)
         i++;
     }
 
-    if (floatOrVariable)
-    {
+    if (floatOrVariable) {
         equationBit bit = {
             floatOrVariable,
             '\0', // no variable for last number
@@ -190,65 +159,49 @@ void Equation::translate(string equationString)
             '\0', // no operation for last number,
             negative,
         };
-        if (negative)
-        {
+        if (negative) {
             negative = false;
         }
         equationPieces.push_back(bit);
-    }
-    else
-    {
+    } else {
         equationBit bit = {
             false,
             numberOrVariable[0],
             (float)NULL, // no number for last variable
             (char)NULL,  // no operation for last variable,
-            negative};
+            negative };
         negative = false;
         equationPieces.push_back(bit);
     }
 }
 
-float Equation::evaluate(vector<float> variable_values)
-{
+float Equation::evaluate(vector<float> variable_values) {
     vector<char> varList(variables.begin(), variables.end());
-    for (size_t j = 0; j < equationPieces.size(); j++)
-    {
-        if (!equationPieces[j].numberOrVariable)
-        {
-            for (size_t i = 0; i < varList.size(); i++)
-            {
-                if (equationPieces[j].variable == varList[i])
-                {
+    for (size_t j = 0; j < equationPieces.size(); j++) {
+        if (!equationPieces[j].numberOrVariable) {
+            for (size_t i = 0; i < varList.size(); i++) {
+                if (equationPieces[j].variable == varList[i]) {
                     equationPieces[j].number = variable_values[i];
                 }
             }
         }
-        if (equationPieces[j].negative)
-        {
+        if (equationPieces[j].negative) {
             equationPieces[j].number *= -1;
         }
     }
     // check for parentheses
-    for (int i = equationPieces.size() - 1; i >= 0; i--)
-    {
-        if (equationPieces[i].innerFunction != "")
-        {
+    for (int i = equationPieces.size() - 1; i >= 0; i--) {
+        if (equationPieces[i].innerFunction != "") {
             float result = 0;
-            if (equationPieces[i].innerFunction.substr(0, 3) == "sin")
-            {
+            if (equationPieces[i].innerFunction.substr(0, 3) == "sin") {
                 Equation thisEq;
                 thisEq.translate(equationPieces[i].innerFunction.substr(4, equationPieces[i].innerFunction.length() - 5));
                 result = sin(thisEq.evaluate(variable_values));
-            }
-            else if (equationPieces[i].innerFunction.substr(0, 3) == "cos")
-            {
+            } else if (equationPieces[i].innerFunction.substr(0, 3) == "cos") {
                 Equation thisEq;
                 thisEq.translate(equationPieces[i].innerFunction.substr(4, equationPieces[i].innerFunction.length() - 5));
                 result = cos(thisEq.evaluate(variable_values));
-            }
-            else
-            {
+            } else {
                 Equation thisEq;
                 thisEq.translate(equationPieces[i].innerFunction);
                 result = thisEq.evaluate(variable_values);
@@ -261,10 +214,8 @@ float Equation::evaluate(vector<float> variable_values)
     }
 
     // check for powers
-    for (int i = equationPieces.size() - 2; i >= 0; i--)
-    {
-        if (equationPieces[i].operation == '^')
-        {
+    for (int i = equationPieces.size() - 2; i >= 0; i--) {
+        if (equationPieces[i].operation == '^') {
             equationPieces[i].number = pow(equationPieces[i].number, equationPieces[i + 1].number);
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
@@ -272,40 +223,32 @@ float Equation::evaluate(vector<float> variable_values)
     }
 
     // check for multiplication
-    for (int i = equationPieces.size() - 2; i >= 0; i--)
-    {
-        if (equationPieces[i].operation == '*')
-        {
+    for (int i = equationPieces.size() - 2; i >= 0; i--) {
+        if (equationPieces[i].operation == '*') {
             equationPieces[i].number = equationPieces[i].number * equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
         }
     }
     // check for division
-    for (int i = equationPieces.size() - 2; i >= 0; i--)
-    {
-        if (equationPieces[i].operation == '/')
-        {
+    for (int i = equationPieces.size() - 2; i >= 0; i--) {
+        if (equationPieces[i].operation == '/') {
             equationPieces[i].number = equationPieces[i].number / equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
         }
     }
     // check for addition
-    for (int i = equationPieces.size() - 2; i >= 0; i--)
-    {
-        if (equationPieces[i].operation == '+')
-        {
+    for (int i = equationPieces.size() - 2; i >= 0; i--) {
+        if (equationPieces[i].operation == '+') {
             equationPieces[i].number = equationPieces[i].number + equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);
         }
     }
     // check for subtraction
-    for (int i = equationPieces.size() - 2; i >= 0; i--)
-    {
-        if (equationPieces[i].operation == '-')
-        {
+    for (int i = equationPieces.size() - 2; i >= 0; i--) {
+        if (equationPieces[i].operation == '-') {
             equationPieces[i].number = equationPieces[i].number - equationPieces[i + 1].number;
             equationPieces[i].operation = equationPieces[i + 1].operation;
             equationPieces.erase(equationPieces.begin() + i + 1);

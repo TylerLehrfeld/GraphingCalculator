@@ -1,0 +1,49 @@
+#include <iostream>
+
+using namespace std;
+
+class Point {
+    public:
+    Point(double x, double y, double z) {
+        _x = x;
+        _y = y;
+        _z = z;
+    }
+
+    Point operator+(Point p1) {
+        Point res(0,0,0);
+        res._x = _x + p1._x;
+        res._y = _y + p1._y;
+        res._z = _z + p1._z;
+        return res;
+    }
+
+    Point operator-(Point p1) {
+        Point res(0,0,0);
+        res._x = _x - p1._x;
+        res._y = _y - p1._y;
+        res._z = _z - p1._z;
+        return res;
+    }
+
+    double operator*(Point p1) {
+        double res = 0;
+        res += p1._x * _x;
+        res += p1._y * _y;
+        res += p1._z * _z;
+        return res;
+    }
+    Point operator*(double scalar) {
+        Point res(_x,_y,_z);
+        res._x *= scalar;
+        res._y *= scalar;
+        res._z *= scalar;
+        return res;
+    }
+    void print() {
+        cout << "("<<_x<<", "<<_y<<", "<<_z<<")" << endl;
+    }
+    double _x;
+    double _y;
+    double _z;
+};
