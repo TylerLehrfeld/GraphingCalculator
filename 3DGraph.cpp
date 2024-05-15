@@ -12,11 +12,16 @@ ThreeDGraph::~ThreeDGraph() {
     equationList.clear();
 }
 
+void drawPoint(double x, double y) {
+
+}
+
 void drawAxis() {
 
 }
 
 #include "GraphHelper.h"
+
 
 void ThreeDGraph::initializeSDLVariables() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -43,8 +48,7 @@ void ThreeDGraph::initializeSDLVariables() {
 
 void ThreeDGraph::init() {
     initializeSDLVariables();
-
-    projectToViewPlane(4, 6, 4);
+    setBounds();
     drawAxis();
 
     beginGameLoop();
@@ -81,6 +85,9 @@ void ThreeDGraph::beginGameLoop() {
 }
 
 void ThreeDGraph::addSurface(string equationString) {
+    Point NormalVector(cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / XRANGE, sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / YRANGE, cos(_zDegrees / 360 * 2 * M_PI) / ZRANGE);
+    Point planePoint(2 * cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * XRANGE, 2 * sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * YRANGE, 2 * cos(_zDegrees / 360 * 2 * M_PI) * ZRANGE);
+
     double dx = (double)XRANGE * 2 / 1000;
     double dy = (double)YRANGE * 2 / 1000;
 
@@ -92,7 +99,7 @@ void ThreeDGraph::addSurface(string equationString) {
             Equation eq;
             eq.translate(equationString);
             float result = eq.evaluate({ (float)x,(float)y });
-            projectToViewPlane(x, y, result);
+            projectToViewPlane(x, y, result, NormalVector, planePoint);
         }
     }
 
@@ -102,27 +109,63 @@ void ThreeDGraph::addSurface(string equationString) {
             Equation eq;
             eq.translate(equationString);
             result = eq.evaluate({ (float)x,(float)y });
-            projectToViewPlane(x, y, result);
+            projectToViewPlane(x, y, result, NormalVector, planePoint);
         }
     }
 }
 
-void ThreeDGraph::projectToViewPlane(double x, double y, double z) {
+Point ThreeDGraph::projectToViewPlane(double x, double y, double z, Point& NormalVector, Point& planePoint) {
     Point pointToProject(x, y, z);
-    Point NormalVector(cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / XRANGE, sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / YRANGE, cos(_zDegrees / 360 * 2 * M_PI) / ZRANGE);
-    Point planePoint(2 * cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * XRANGE, 2 * sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * YRANGE, 2 * cos(_zDegrees / 360 * 2 * M_PI) * ZRANGE);
     Point projectedPoint = pointToProject - (NormalVector * ((NormalVector * (pointToProject - planePoint)) * (1 / (NormalVector * NormalVector))));
-    Point relativeProjectedPoint = projectedPoint - planePoint;
+    planePoint.toSpherical();
+    projectedPoint.toSpherical();
+    projectedPoint._z -= planePoint._z;
+    projectedPoint.toRectangular();
+    return projectedPoint;
+
+    /*Point relativeProjectedPoint = projectedPoint - planePoint;
     Point AlignedPoint(2*XRANGE * cos(_xDegrees / 360 * 2 * M_PI) / sin(_zDegrees / 360 * 2 * M_PI), 2*YRANGE * sin(_xDegrees / 360 * 2 * M_PI) / sin(_zDegrees / 360 * 2 * M_PI), 0);
     AlignedPoint = AlignedPoint - planePoint;
 
     double angle = acos((AlignedPoint * relativeProjectedPoint)/((AlignedPoint * AlignedPoint)*(relativeProjectedPoint * relativeProjectedPoint)));
     double magnitude = relativeProjectedPoint * relativeProjectedPoint;
+    */
 }
 void zoom() {}
 
 void rotate() {
 
+}
+
+void ThreeDGraph::setBounds() {
+    Point NormalVector(cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / XRANGE, sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / YRANGE, cos(_zDegrees / 360 * 2 * M_PI) / ZRANGE);
+    Point planePoint(2 * cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * XRANGE, 2 * sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * YRANGE, 2 * cos(_zDegrees / 360 * 2 * M_PI) * ZRANGE);
+    Point corner = projectToViewPlane(-XRANGE, YRANGE, ZRANGE, NormalVector, planePoint);
+    double lowestX = corner._x;
+    double lowestY = corner._y;
+    double highestX = corner._x;
+    double highestY = corner._y;
+    for (int i = 1; i <= 1; i += 2) {
+        for (int j = -1; j <= 1; j += 2) {
+            for (int k = -1; k <= 1; k += 2) {
+                corner = projectToViewPlane(XRANGE * i, YRANGE * j, ZRANGE * k, NormalVector, planePoint);
+                if (corner._x <= lowestX) {
+                    lowestX = corner._x;
+                }
+
+                if (corner._y <= lowestY) {
+                    lowestY = corner._y;
+                }
+                if (corner._x >= highestX) {
+                    highestX = corner._x;
+                }
+
+                if (corner._y >= highestY) {
+                    highestY = corner._y;
+                }
+            }
+        }
+    }
 }
 
 

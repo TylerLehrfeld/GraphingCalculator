@@ -1,6 +1,5 @@
 #ifndef EQUATION
 #define EQUATION
-
 #include <string>
 #include <vector>
 #include <set>

@@ -22,7 +22,8 @@ private:
 
     void zoom(double zoomDiff);
     void rotate(double xDegrees, double yDegrees, double zDegrees);
-    void projectToViewPlane(double x, double y, double z);
+    Point projectToViewPlane(double x, double y, double z, Point&, Point&);
+    void setBounds();
     void initializeSDLVariables();
     void beginGameLoop();
     double XRANGE = 10;

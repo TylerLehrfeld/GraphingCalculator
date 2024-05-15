@@ -43,6 +43,24 @@ class Point {
     void print() {
         cout << "("<<_x<<", "<<_y<<", "<<_z<<")" << endl;
     }
+
+    void toSpherical() {
+        double rho = sqrt(pow(_x,2)+pow(_y,2)+pow(_z,2));
+        double theta = atan2(_y,_x);
+        double phi = acos(_z/rho);
+        _x = rho;
+        _y = theta;
+        _z = phi;
+    }
+
+    void toRectangular() {
+        double x = _x*sin(_z)*cos(_y);
+        double y = _x*sin(_z)*sin(_y);
+        double z = _x*cos(_z);
+        _x = x;
+        _y = y;
+        _z = z;
+    }
     double _x;
     double _y;
     double _z;
