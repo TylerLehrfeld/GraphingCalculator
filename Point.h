@@ -9,6 +9,36 @@ class Point {
         _y = y;
         _z = z;
     }
+    Point() {
+        _x = 0;
+        _y = 0;
+        _z = 0;
+    }
+
+    void rotateZ(double angle) {
+        double x = _x*cos(angle) - _y*sin(angle);
+        double y = _x*sin(angle) + _y*cos(angle);
+        _x = x;
+        _y = y;
+    }
+
+    void rotateX(double angle) {
+        double x = _x;
+        double y = _y * cos(angle) - _z*sin(angle);
+        double z = _y * sin(angle) + _z*cos(angle);
+        _x = x;
+        _y = y;
+        _z = z;
+    }
+
+    void rotateY(double angle) {
+        double x = cos(angle) * _x + sin(angle) * _z;
+        double y = _y;
+        double z = -sin(angle) * _x + cos(angle) * _z;
+        _x = x;
+        _y = y;
+        _z = z;
+    }
 
     Point operator+(Point p1) {
         Point res(0,0,0);

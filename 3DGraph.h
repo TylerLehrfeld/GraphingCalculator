@@ -9,7 +9,7 @@
 using namespace std;
 
 class windowDefinition {
-    public:
+public:
     double minX;
     double maxX;
     double minY;
@@ -21,8 +21,8 @@ class windowDefinition {
         double xVal = x - minX;
         double Yrange = maxY - minY;
         double yVal = y - minY;
-        
-        return Point(xVal/Xrange * WINDOW_WIDTH, yVal/Yrange * WINDOW_HEIGHT, 0);
+
+        return Point(xVal / Xrange * WINDOW_WIDTH, yVal / Yrange * WINDOW_HEIGHT, 0);
     };
 };
 
@@ -41,22 +41,23 @@ private:
 
     void zoom(double zoomDiff);
     void rotate(double xDegrees, double yDegrees, double zDegrees);
-    Point projectToViewPlane(double x, double y, double z, Point normal, Point plane);
+    Point projectToViewPlane(double x, double y, double z);
+    Point Normal;
     void setBounds();
     void initializeSDLVariables();
     void beginGameLoop();
     void drawPoint(double x, double y);
     void* pixels;
     int pitch;
-    
+
     double XRANGE = 10;
     double YRANGE = 10;
     double ZRANGE = 10;
     double WINDOW_WIDTH = 1000;
     double WINDOW_HEIGHT = 1000;
     windowDefinition graphingWindow;
-    double _zDegrees = 60;
-    double _xDegrees = 315;
+    double thetaX = M_PI / 4;
+    double thetaZ = -M_PI / 4;
     vector<string> equationList;
 };
 

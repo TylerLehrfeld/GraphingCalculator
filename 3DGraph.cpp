@@ -8,6 +8,9 @@
 ThreeDGraph::ThreeDGraph() {
     pixels = nullptr;
     pitch = 0;
+    Normal._x = 0;
+    Normal._y = 0;
+    Normal._z = 1;
 }
 
 ThreeDGraph::~ThreeDGraph() {
@@ -18,11 +21,11 @@ void ThreeDGraph::drawPoint(double x, double y) {
     Point pixelPoint = graphingWindow.toPixel(x, y);
     x = pixelPoint._x;
     y = pixelPoint._y;
-    if(x <= graphingWindow.minX || x >= graphingWindow.maxX || y <= graphingWindow.minY || y >= graphingWindow.maxY) {
+    if((int)x <= 0 || (int)x >= WINDOW_WIDTH || (int)y <= 0 || (int)y > WINDOW_WIDTH) {
         return;
     } else {
         
-        Uint32 *pixel = static_cast<Uint32 *>(pixels) + (int)(pixelPoint._x) + (int)(WINDOW_HEIGHT - pixelPoint._y) * (pitch / sizeof(Uint32));
+        Uint32 *pixel = static_cast<Uint32 *>(pixels) + (int)(x) + (int)(WINDOW_HEIGHT - y) * (pitch / sizeof(Uint32));
         *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
     
     }
@@ -108,8 +111,6 @@ void ThreeDGraph::addSurface(string equationString) {
         return;
     }
 
-    Point NormalVector(cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / XRANGE, sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / YRANGE, cos(_zDegrees / 360 * 2 * M_PI) / ZRANGE);
-    Point planePoint(2 * cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * XRANGE, 2 * sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * YRANGE, 2 * cos(_zDegrees / 360 * 2 * M_PI) * ZRANGE);
     Point drawablePoint(0,0,0);
     double dx = (double)XRANGE * 2 / 1000;
     double dy = (double)YRANGE * 2 / 1000;
@@ -122,7 +123,7 @@ void ThreeDGraph::addSurface(string equationString) {
             Equation eq;
             eq.translate(equationString);
             float result = eq.evaluate({ (float)x,(float)y });
-            drawablePoint = projectToViewPlane(x, y, result, NormalVector, planePoint);
+            drawablePoint = projectToViewPlane(x, y, result);
             drawPoint(drawablePoint._x, drawablePoint._y);
         }
     }
@@ -133,7 +134,7 @@ void ThreeDGraph::addSurface(string equationString) {
             Equation eq;
             eq.translate(equationString);
             result = eq.evaluate({ (float)x,(float)y });
-            drawablePoint = projectToViewPlane(x, y, result, NormalVector, planePoint);
+            drawablePoint = projectToViewPlane(x, y, result);
             drawPoint(drawablePoint._x, drawablePoint._y);
         }
     }
@@ -143,22 +144,13 @@ void ThreeDGraph::addSurface(string equationString) {
     SDL_RenderPresent(renderer);
 }
 
-Point ThreeDGraph::projectToViewPlane(double x, double y, double z, Point NormalVector, Point planePoint) {
+Point ThreeDGraph::projectToViewPlane(double x, double y, double z) {
     Point pointToProject(x, y, z);
-    Point projectedPoint = pointToProject - (NormalVector * ((NormalVector * (pointToProject - planePoint)) * (1 / (NormalVector * NormalVector))));
-    planePoint.toSpherical();
-    projectedPoint.toSpherical();
-    projectedPoint._z -= planePoint._z;
-    projectedPoint.toRectangular();
+    Point projectedPoint = pointToProject - (Normal * ((Normal * (pointToProject)) * (1 / (Normal * Normal))));
+    projectedPoint.rotateZ(-thetaZ);
+    projectedPoint.rotateX(-thetaX);
     return projectedPoint;
 
-    /*Point relativeProjectedPoint = projectedPoint - planePoint;
-    Point AlignedPoint(2*XRANGE * cos(_xDegrees / 360 * 2 * M_PI) / sin(_zDegrees / 360 * 2 * M_PI), 2*YRANGE * sin(_xDegrees / 360 * 2 * M_PI) / sin(_zDegrees / 360 * 2 * M_PI), 0);
-    AlignedPoint = AlignedPoint - planePoint;
-
-    double angle = acos((AlignedPoint * relativeProjectedPoint)/((AlignedPoint * AlignedPoint)*(relativeProjectedPoint * relativeProjectedPoint)));
-    double magnitude = relativeProjectedPoint * relativeProjectedPoint;
-    */
 }
 void zoom() {}
 
@@ -167,17 +159,17 @@ void rotate() {
 }
 
 void ThreeDGraph::setBounds() {
-    Point NormalVector(cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / XRANGE, sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) / YRANGE, cos(_zDegrees / 360 * 2 * M_PI) / ZRANGE);
-    Point planePoint(2 * cos(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * XRANGE, 2 * sin(_xDegrees / 360 * 2 * M_PI) * sin(_zDegrees / 360 * 2 * M_PI) * YRANGE, 2 * cos(_zDegrees / 360 * 2 * M_PI) * ZRANGE);
-    Point corner = projectToViewPlane(-XRANGE, -YRANGE, -ZRANGE, NormalVector, planePoint);
+    Normal.rotateX(thetaX);
+    Normal.rotateZ(thetaZ);
+    Point corner = projectToViewPlane(-XRANGE, -YRANGE, ZRANGE);
     double lowestX = corner._x;
     double lowestY = corner._y;
     double highestX = corner._x;
     double highestY = corner._y;
-    for (int i = 1; i <= 1; i += 2) {
+    for (int i = -1; i <= 1; i += 2) {
         for (int j = -1; j <= 1; j += 2) {
             for (int k = -1; k <= 1; k += 2) {
-                corner = projectToViewPlane(XRANGE * i, YRANGE * j, ZRANGE * k, NormalVector, planePoint);
+                corner = projectToViewPlane(XRANGE * i, YRANGE * j, ZRANGE * k);
                 if (corner._x <= lowestX) {
                     lowestX = corner._x;
                 }
@@ -198,7 +190,7 @@ void ThreeDGraph::setBounds() {
     graphingWindow.maxX = highestX;
     graphingWindow.maxY =highestY;
     graphingWindow.minX = lowestX;
-    graphingWindow.minY = highestY;
+    graphingWindow.minY = lowestY;
     graphingWindow.WINDOW_HEIGHT = WINDOW_HEIGHT;
     graphingWindow.WINDOW_WIDTH = WINDOW_WIDTH;
 }
