@@ -21,13 +21,13 @@ void ThreeDGraph::drawPoint(double x, double y) {
     Point pixelPoint = graphingWindow.toPixel(x, y);
     x = pixelPoint._x;
     y = pixelPoint._y;
-    if((int)x <= 0 || (int)x >= WINDOW_WIDTH || (int)y <= 0 || (int)y > WINDOW_WIDTH) {
+    if ((int)x <= 0 || (int)x >= WINDOW_WIDTH || (int)y <= 0 || (int)y > WINDOW_WIDTH) {
         return;
     } else {
-        
-        Uint32 *pixel = static_cast<Uint32 *>(pixels) + (int)(x) + (int)(WINDOW_HEIGHT - y) * (pitch / sizeof(Uint32));
+
+        Uint32* pixel = static_cast<Uint32*>(pixels) + (int)(x)+(int)(WINDOW_HEIGHT - y) * (pitch / sizeof(Uint32));
         *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
-    
+
     }
 }
 
@@ -86,23 +86,35 @@ void ThreeDGraph::beginGameLoop() {
             } if (event.type == SDL_KEYDOWN) {
                 char keyPressed = (char)(event.key.keysym.sym);
                 if (keyPressed == 'l') {
+                    cout << "Enter your equation with variables x and y:" << endl;
                     string equationString;
                     cin >> equationString;
                     equationList.push_back(equationString);
                     for (string equation : equationList) {
                         addSurface(equation);
                     }
+                } else if ((int)keyPressed == 79) {
+                    rotate(0, .1);
+                } else if ((int)keyPressed == 80) {
+                    rotate(0, -.1);
+                } else if ((int)keyPressed == 81) {
+                    rotate(-.1, 0);
+                } else if ((int)keyPressed == 82) {
+                    rotate(.1, 0);
+                } else if ((int)keyPressed == 61) {
+                    zoom(1);//zoom in
+                } else if ((int)keyPressed == 45) {
+                    zoom(-1);
                 }
             }
-            SDL_Delay(20);
+            //SDL_Delay(20);
         }
     }
 }
 
 void ThreeDGraph::addSurface(string equationString) {
 
-    if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0)
-    {
+    if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
         cout << "error in graph line: " << SDL_GetError() << endl;
         SDL_DestroyTexture(texture);
         SDL_DestroyRenderer(renderer);
@@ -111,15 +123,15 @@ void ThreeDGraph::addSurface(string equationString) {
         return;
     }
 
-    Point drawablePoint(0,0,0);
+    Point drawablePoint(0, 0, 0);
     double dx = (double)XRANGE * 2 / 1000;
     double dy = (double)YRANGE * 2 / 1000;
 
     //We want to create 10 contour X and Y contourlines for the range selected
     //so we choose 10 x points and evaluate all of the y points to get a contour line
     float result = 0;
-    for (double x = -(double)XRANGE / 2; x <= (double)XRANGE / 2; x += 10 * dx) {
-        for (double y = -(double)YRANGE / 2; y <= (double)YRANGE / 2; y += dy) {
+    for (double x = -(double)XRANGE; x <= (double)XRANGE; x += 10 * dx) {
+        for (double y = -(double)YRANGE; y <= (double)YRANGE; y += dy) {
             Equation eq;
             eq.translate(equationString);
             float result = eq.evaluate({ (float)x,(float)y });
@@ -129,8 +141,8 @@ void ThreeDGraph::addSurface(string equationString) {
     }
 
     //choose 10 y points and evaluate each at every x
-    for (double y = -(double)YRANGE / 2; y <= (double)YRANGE / 2; y += 10 * dy) {
-        for (double x = -(double)XRANGE / 2; x <= (double)XRANGE / 2; x += dx) {
+    for (double y = -(double)YRANGE; y <= (double)YRANGE; y += 10 * dy) {
+        for (double x = -(double)XRANGE; x <= (double)XRANGE; x += dx) {
             Equation eq;
             eq.translate(equationString);
             result = eq.evaluate({ (float)x,(float)y });
@@ -152,13 +164,25 @@ Point ThreeDGraph::projectToViewPlane(double x, double y, double z) {
     return projectedPoint;
 
 }
-void zoom() {}
 
-void rotate() {
-
+void ThreeDGraph::rotate(double xDegrees, double zDegrees) {
+    SDL_RenderClear(renderer);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    SDL_RenderPresent(renderer);
+    thetaX += xDegrees;
+    thetaZ += zDegrees;
+    setBounds();
+    for (string i : equationList) {
+        addSurface(i);
+    }
 }
 
 void ThreeDGraph::setBounds() {
+    Normal._x = 0;
+    Normal._y = 0;
+    Normal._z = 1;
     Normal.rotateX(thetaX);
     Normal.rotateZ(thetaZ);
     Point corner = projectToViewPlane(-XRANGE, -YRANGE, ZRANGE);
@@ -188,11 +212,25 @@ void ThreeDGraph::setBounds() {
         }
     }
     graphingWindow.maxX = highestX;
-    graphingWindow.maxY =highestY;
+    graphingWindow.maxY = highestY;
     graphingWindow.minX = lowestX;
     graphingWindow.minY = lowestY;
     graphingWindow.WINDOW_HEIGHT = WINDOW_HEIGHT;
     graphingWindow.WINDOW_WIDTH = WINDOW_WIDTH;
 }
 
+void ThreeDGraph::zoom(double zoomDiff) {
+    SDL_RenderClear(renderer);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOW_WIDTH, WINDOW_HEIGHT);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    SDL_RenderPresent(renderer);
+    XRANGE += zoomDiff;
+    YRANGE += zoomDiff;
+    ZRANGE += zoomDiff;
+    setBounds();
+    for (string i : equationList) {
+        addSurface(i);
+    }
+}
 

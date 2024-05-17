@@ -40,7 +40,7 @@ private:
     SDL_Texture* texture;
 
     void zoom(double zoomDiff);
-    void rotate(double xDegrees, double yDegrees, double zDegrees);
+    void rotate(double xDegrees, double zDegrees);
     Point projectToViewPlane(double x, double y, double z);
     Point Normal;
     void setBounds();
