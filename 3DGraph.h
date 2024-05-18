@@ -46,7 +46,8 @@ private:
     void setBounds();
     void initializeSDLVariables();
     void beginGameLoop();
-    void drawPoint(double x, double y);
+    void drawPoint(double x, double y, int r, int g, int b);
+    void drawAxis();
     void* pixels;
     int pitch;
 

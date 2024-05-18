@@ -17,7 +17,7 @@ ThreeDGraph::~ThreeDGraph() {
     equationList.clear();
 }
 
-void ThreeDGraph::drawPoint(double x, double y) {
+void ThreeDGraph::drawPoint(double x, double y, int r, int g, int b) {
     Point pixelPoint = graphingWindow.toPixel(x, y);
     x = pixelPoint._x;
     y = pixelPoint._y;
@@ -26,12 +26,42 @@ void ThreeDGraph::drawPoint(double x, double y) {
     } else {
 
         Uint32* pixel = static_cast<Uint32*>(pixels) + (int)(x)+(int)(WINDOW_HEIGHT - y) * (pitch / sizeof(Uint32));
-        *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), 255, 255, 255);
+        *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), r, g, b);
 
     }
 }
 
-void drawAxis() {
+void ThreeDGraph::drawAxis() {
+    if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
+        cout << "error in graph line: " << SDL_GetError() << endl;
+        SDL_DestroyTexture(texture);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return;
+    }
+
+    double dx = (double)XRANGE * 2 / 1000;
+    double dy = (double)YRANGE * 2 / 1000;
+    double dz = (double)ZRANGE * 2 / 1000;
+    double x = 0;
+    double y = 0;
+    double z = 0;
+    for (x = -(double)XRANGE; x <= (double)XRANGE; x += dx) {
+        Point drawablePoint = projectToViewPlane(x, 0, 0);
+        drawPoint(drawablePoint._x, drawablePoint._y, 255, 0, 0);
+    }
+    for (y = -(double)YRANGE; y <= (double)YRANGE; y += dy) {
+        Point drawablePoint = projectToViewPlane(0, y, 0);
+        drawPoint(drawablePoint._x, drawablePoint._y, 0, 0, 255);
+    }
+    for (z = -(double)ZRANGE; z <= (double)ZRANGE; z += dz) {
+        Point drawablePoint = projectToViewPlane(0, 0, z);
+        drawPoint(drawablePoint._x, drawablePoint._y, 0, 255, 0);
+    }
+    SDL_UnlockTexture(texture);
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    SDL_RenderPresent(renderer);
 
 }
 
@@ -102,9 +132,9 @@ void ThreeDGraph::beginGameLoop() {
                 } else if ((int)keyPressed == 82) {
                     rotate(.1, 0);
                 } else if ((int)keyPressed == 61) {
-                    zoom(1);//zoom in
+                    zoom(-1);//zoom in
                 } else if ((int)keyPressed == 45) {
-                    zoom(-1);
+                    zoom(1);
                 }
             }
             //SDL_Delay(20);
@@ -136,7 +166,7 @@ void ThreeDGraph::addSurface(string equationString) {
             eq.translate(equationString);
             float result = eq.evaluate({ (float)x,(float)y });
             drawablePoint = projectToViewPlane(x, y, result);
-            drawPoint(drawablePoint._x, drawablePoint._y);
+            drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
         }
     }
 
@@ -147,7 +177,7 @@ void ThreeDGraph::addSurface(string equationString) {
             eq.translate(equationString);
             result = eq.evaluate({ (float)x,(float)y });
             drawablePoint = projectToViewPlane(x, y, result);
-            drawPoint(drawablePoint._x, drawablePoint._y);
+            drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
         }
     }
 
@@ -174,6 +204,7 @@ void ThreeDGraph::rotate(double xDegrees, double zDegrees) {
     thetaX += xDegrees;
     thetaZ += zDegrees;
     setBounds();
+    drawAxis();
     for (string i : equationList) {
         addSurface(i);
     }
@@ -229,6 +260,7 @@ void ThreeDGraph::zoom(double zoomDiff) {
     YRANGE += zoomDiff;
     ZRANGE += zoomDiff;
     setBounds();
+    drawAxis();
     for (string i : equationList) {
         addSurface(i);
     }
