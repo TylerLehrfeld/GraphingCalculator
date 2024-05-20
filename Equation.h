@@ -7,8 +7,8 @@
 using namespace std;
 
 class Equation {
-    private:
-    
+private:
+
     struct equationBit {
         bool numberOrVariable;
         char variable;
@@ -20,8 +20,8 @@ class Equation {
     int parameterCount;
     vector<equationBit> equationPieces;
     set<char> variables;
-    
-    public:
+
+public:
     void translate(string equationString);
     float evaluate(vector<float>);
 
