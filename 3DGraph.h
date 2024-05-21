@@ -30,6 +30,9 @@ class ThreeDGraph {
 public:
     void init();
     void addSurface(string equationString);
+    Point projectToViewPlane(double x, double y, double z);
+    void drawPoint(double x, double y, int r, int g, int b);
+    
     ~ThreeDGraph();
     ThreeDGraph();
 
@@ -40,13 +43,13 @@ private:
     SDL_Texture* texture;
 
     void zoom(double zoomDiff);
+    void* threadFunc1(void* args);
     void rotate(double xDegrees, double zDegrees);
-    Point projectToViewPlane(double x, double y, double z);
     Point Normal;
     void setBounds();
     void initializeSDLVariables();
     void beginGameLoop();
-    void drawPoint(double x, double y, int r, int g, int b);
+    //void drawX();
     void drawAxis();
     void* pixels;
     int pitch;
@@ -60,6 +63,7 @@ private:
     double thetaX = M_PI / 4;
     double thetaZ = -M_PI / 4;
     vector<string> equationList;
+    string _equationString;
 };
 
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <math.h>
+#include <thread>
 
 
 
@@ -142,6 +143,42 @@ void ThreeDGraph::beginGameLoop() {
     }
 }
 
+void drawXContourLines(string equationString, SDL_Texture* texture, int pitch, void* pixels, ThreeDGraph* graph, int XRANGE, int YRANGE) {
+    //We want to create 10 contour X and Y contourlines for the range selected
+    //so we choose 10 x points and evaluate all of the y points to get a contour line
+    Point drawablePoint(0, 0, 0);
+    double dx = (double)XRANGE * 2 / 1000;
+    double dy = (double)YRANGE * 2 / 1000;
+
+    for (double x = -(double)XRANGE; x <= (double)XRANGE; x += 10 * dx) {
+        for (double y = -(double)YRANGE; y <= (double)YRANGE; y += dy) {
+            Equation eq;
+            eq.translate(equationString);
+            float result = eq.evaluate({ (float)x,(float)y });
+            drawablePoint = graph->projectToViewPlane(x, y, result);
+            graph->drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
+        }
+    }
+}
+
+void drawYContourLines(string equationString, SDL_Texture* texture, int pitch, void* pixels, ThreeDGraph* graph, int XRANGE, int YRANGE) {
+    //choose 10 y points and evaluate each at every x
+    Point drawablePoint(0, 0, 0);
+    double dx = (double)XRANGE * 2 / 1000;
+    double dy = (double)YRANGE * 2 / 1000;
+
+    for (double y = -(double)YRANGE; y <= (double)YRANGE; y += 10 * dy) {
+        for (double x = -(double)XRANGE; x <= (double)XRANGE; x += dx) {
+            Equation eq;
+            eq.translate(equationString);
+            float result = eq.evaluate({ (float)x,(float)y });
+            drawablePoint = graph->projectToViewPlane(x, y, result);
+            graph->drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
+        }
+    }
+}
+
+
 void ThreeDGraph::addSurface(string equationString) {
 
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
@@ -152,35 +189,12 @@ void ThreeDGraph::addSurface(string equationString) {
         SDL_Quit();
         return;
     }
-
-    Point drawablePoint(0, 0, 0);
-    double dx = (double)XRANGE * 2 / 1000;
-    double dy = (double)YRANGE * 2 / 1000;
-
-    //We want to create 10 contour X and Y contourlines for the range selected
-    //so we choose 10 x points and evaluate all of the y points to get a contour line
-    float result = 0;
-    for (double x = -(double)XRANGE; x <= (double)XRANGE; x += 10 * dx) {
-        for (double y = -(double)YRANGE; y <= (double)YRANGE; y += dy) {
-            Equation eq;
-            eq.translate(equationString);
-            float result = eq.evaluate({ (float)x,(float)y });
-            drawablePoint = projectToViewPlane(x, y, result);
-            drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
-        }
-    }
-
-    //choose 10 y points and evaluate each at every x
-    for (double y = -(double)YRANGE; y <= (double)YRANGE; y += 10 * dy) {
-        for (double x = -(double)XRANGE; x <= (double)XRANGE; x += dx) {
-            Equation eq;
-            eq.translate(equationString);
-            result = eq.evaluate({ (float)x,(float)y });
-            drawablePoint = projectToViewPlane(x, y, result);
-            drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
-        }
-    }
-
+    
+    std::thread xThread(drawXContourLines, equationString, texture, pitch, pixels, this, XRANGE, YRANGE);
+    std::thread yThread(drawYContourLines, equationString, texture, pitch, pixels, this, XRANGE, YRANGE);
+    
+    xThread.join();
+    yThread.join();
     SDL_UnlockTexture(texture);
     SDL_RenderCopy(renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(renderer);
