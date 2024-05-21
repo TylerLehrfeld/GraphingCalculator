@@ -75,7 +75,7 @@ void ThreeDGraph::initializeSDLVariables() {
         return;
     }
     window = SDL_CreateWindow(
-        "Click Graph to enter equation",
+        "Click l to enter equation in console",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         WINDOW_WIDTH,
