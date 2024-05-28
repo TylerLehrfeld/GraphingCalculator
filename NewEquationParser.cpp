@@ -1,18 +1,34 @@
 #include "NewEquationParser.h"
 
+string nonVariableChars = "().0123456789+-/*^e";
+
 //This is the function that will take an equation given by the user, and prepare it to be evaluated at any value
 NewEquationParser::NewEquationParser(string equationString) {
     translate(equationString);
 }
 
-void NewEquationParser::evaluate(double variableValues[]) {
+NewEquationParser::~NewEquationParser() {
+    delete equationRoot;
+}
 
+void NewEquationParser::evaluate(unordered_map<char, double> &varMap) {
+    for(auto i : varMap) {
+        variableValuesMap[i.first] = i.second;
+    }
 }
 
 void NewEquationParser::translate(string _equationString) {
-    size_t length = _equationString.size();
-    //unwrap equation of parentheses
-    while(_equationString[0] == '(' && _equationString[length - 1] == ')') {
-        _equationString = _equationString.substr(1, length - 2);
+    equationRoot = new EquationPiece(_equationString);
+    variableValuesMap['e'] = exp(1);
+    for(char c : _equationString) {
+        size_t ind = nonVariableChars.find(c);
+        if(ind != std::string::npos) {
+            if(ind + 3 < _equationString.size() && ((c == 's' && _equationString.substr(ind, 3) != "sin") || (c == 'c' && _equationString.substr(ind, 3) != "cos"))) {
+                ind += 2;
+            } else {
+                variableValuesMap[c] = 0;
+            }
+        }
     }
+    
 }
