@@ -1,5 +1,7 @@
 #include "NewEquationParser.h"
 
+
+
 string nonVariableChars = "().0123456789+-/*^e";
 
 //This is the function that will take an equation given by the user, and prepare it to be evaluated at any value
@@ -11,10 +13,11 @@ NewEquationParser::~NewEquationParser() {
     delete equationRoot;
 }
 
-void NewEquationParser::evaluate(unordered_map<char, double> &varMap) {
+double NewEquationParser::evaluate(unordered_map<char, double> &varMap) {
     for(auto i : varMap) {
         variableValuesMap[i.first] = i.second;
     }
+    return equationRoot->evaluate(variableValuesMap);
 }
 
 void NewEquationParser::translate(string _equationString) {

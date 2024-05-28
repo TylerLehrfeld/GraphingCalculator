@@ -2,6 +2,7 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include "Equation.h"
+#include "NewEquationParser.h"
 #include "Point.h"
 #ifndef THREE_D_GRAPH
 #define THREE_D_GRAPH
