@@ -19,12 +19,14 @@ int main()
         Graph graph;
         graph.init();
     }
-
-    /*NewEquationParser parser("x-y+3");
+    /*string str;
+    cin >> str;
+    NewEquationParser parser(str);
     unordered_map<char, double> values;
     values['x'] = 2;
     values['y'] = 4.5;
-    cout << parser.evaluate(values) << endl;*/
-    
+    double result = parser.evaluate(values);
+    cout << result << endl;
+    */
     return 0;
 }

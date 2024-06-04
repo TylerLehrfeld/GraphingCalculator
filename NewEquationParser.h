@@ -12,13 +12,12 @@ using std::string, std::min, std::unordered_map, std::vector;
 
 class EquationPiece {
 
-    int getOperationIndex(string equationString) {
-        size_t length = equationString.size();
+    vector<int> getOperationIndexes(string equationString) {
+        vector<int> plusOrMinusIndexes;
+        vector<int> multOrDivIndexes;
+        vector<int> powerIndexes;
         int parenthesesCount = 0;
         int index = 0;
-        int divIndex = length;
-        int multIndex = length;
-        int powIndex = length;
         //first check if there are operations
         for (char c : equationString) {
             if (c == '(') {
@@ -27,35 +26,34 @@ class EquationPiece {
                 parenthesesCount--;
             } else if (parenthesesCount == 0) {
                 if (c == '+') {
-                    return index;
+                    plusOrMinusIndexes.push_back(index);
                 } else if (c == '-') {
-                    return index;
+                    plusOrMinusIndexes.push_back(index);
                 } else if (c == '*') {
-                    if (index < multIndex) {
-                        multIndex = index;
-                    }
+                    multOrDivIndexes.push_back(index);
                 } else if (c == '/') {
-                    if (index < divIndex) {
-                        divIndex = index;
-                    }
-                } else if (c == '^') {
-                    if (index < powIndex) {
-                        powIndex = index;
-                    }
+                    multOrDivIndexes.push_back(index);
+                } else if (c == '^' && powerIndexes.size() == 0) {
+                    powerIndexes.push_back(index);
                 }
             }
             index++;
         }
-        //return -1 if no operations were found.
-        if ((size_t)min(multIndex, divIndex) != length) {
-            return min(multIndex, divIndex);
+        if (plusOrMinusIndexes.size() > 0) {
+            return plusOrMinusIndexes;
+        } else if (multOrDivIndexes.size() > 0) {
+            return multOrDivIndexes;
+        } else if (powerIndexes.size() > 0) {
+            return powerIndexes;
         }
-        return (size_t)powIndex == length ? -1 : powIndex;
+        //return -1 if no operations were found.
+        return plusOrMinusIndexes;
     }
 public:
     ~EquationPiece() {
-        delete leftPiece;
-        delete rightPiece;
+        for (EquationPiece* piece : equationPieces) {
+            delete piece;
+        }
     }
     EquationPiece(string _equationString) {
 
@@ -71,46 +69,57 @@ public:
             equationString = equationString.substr(1, length - 2);
         }
 
-        int operationIndex = getOperationIndex(equationString);
+        vector<int> operationIndexes = getOperationIndexes(equationString);
 
-        if (operationIndex == -1) {
+        if (operationIndexes.size() == 0) {
             try {
                 stod(equationString);
                 EquationPieceTypeID = NUMBER;
-            } catch (const std::invalid_argument& ia) {
+            } catch (const std::invalid_argument& invalid_argument) {
                 EquationPieceTypeID = VARIABLE;
             }
 
         } else {
-            operation = equationString[operationIndex];
-            leftPiece = new EquationPiece(equationString.substr(0, operationIndex));
-            rightPiece = new EquationPiece(equationString.substr(operationIndex + 1));
+            int start = 0;
+            int index = 0;
+            operations.push_back('+');
+            for (int i : operationIndexes) {
+                operations.push_back(equationString[operationIndexes[index]]);
+            
+                equationPieces.push_back(new EquationPiece(equationString.substr(start, i-start)));
+                index++;
+                start = i + 1;
+            }
+            equationPieces.push_back(new EquationPiece(equationString.substr(start)));
+                
             EquationPieceTypeID = SOLVABLEEQUATION;
 
         }
     }
     int EquationPieceTypeID;
-    EquationPiece* leftPiece;
-    EquationPiece* rightPiece;
+    vector<EquationPiece*> equationPieces;
     string equationString;
     double evaluate(unordered_map<char, double>& variableMap) {
+        double result = 0;
         if (EquationPieceTypeID == VARIABLE) {
             return variableMap[equationString[0]];
         } else if (EquationPieceTypeID == SOLVABLEEQUATION) {
-            if (operation == '+') {
-                return leftPiece->evaluate(variableMap) + rightPiece->evaluate(variableMap);
-            } else if (operation == '-') {
-
-                return leftPiece->evaluate(variableMap) - rightPiece->evaluate(variableMap);
-            } else if (operation == '*') {
-
-                return leftPiece->evaluate(variableMap) * rightPiece->evaluate(variableMap);
-            } else if (operation == '/') {
-
-                return leftPiece->evaluate(variableMap) / rightPiece->evaluate(variableMap);
-            } else if (operation == '^') {
-                return pow(leftPiece->evaluate(variableMap), rightPiece->evaluate(variableMap));
+            int index = 0;
+            for(EquationPiece *piece : equationPieces) {
+                if(operations[index] == '+') {
+                    result += piece->evaluate(variableMap);
+                } else if(operations[index] == '-') {
+                    result -= piece->evaluate(variableMap);
+                } else if(operations[index] == '*') {
+                    result *= piece->evaluate(variableMap);
+                } else if(operations[index] == '/') {
+                    result /= piece->evaluate(variableMap);
+                } if(operations[index] == '^') {
+                    result = pow(result,piece->evaluate(variableMap));
+                }
+                index++;
             }
+            return result;
         } else if (EquationPieceTypeID == NUMBER) {
             return stod(equationString);
         }
@@ -118,7 +127,7 @@ public:
         return -1;
     };
 
-    char operation;
+    vector<char> operations;
 
     int VARIABLE = 1;
     int SOLVABLEEQUATION = 2;
