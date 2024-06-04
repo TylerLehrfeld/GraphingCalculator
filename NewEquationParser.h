@@ -54,6 +54,8 @@ public:
         for (EquationPiece* piece : equationPieces) {
             delete piece;
         }
+        equationPieces.clear();
+        operations.clear();
     }
     EquationPiece(string _equationString) {
 
@@ -85,13 +87,13 @@ public:
             operations.push_back('+');
             for (int i : operationIndexes) {
                 operations.push_back(equationString[operationIndexes[index]]);
-            
-                equationPieces.push_back(new EquationPiece(equationString.substr(start, i-start)));
+
+                equationPieces.push_back(new EquationPiece(equationString.substr(start, i - start)));
                 index++;
                 start = i + 1;
             }
             equationPieces.push_back(new EquationPiece(equationString.substr(start)));
-                
+
             EquationPieceTypeID = SOLVABLEEQUATION;
 
         }
@@ -99,23 +101,26 @@ public:
     int EquationPieceTypeID;
     vector<EquationPiece*> equationPieces;
     string equationString;
-    double evaluate(unordered_map<char, double>& variableMap) {
+    double evaluate(double x, double y) {
         double result = 0;
         if (EquationPieceTypeID == VARIABLE) {
-            return variableMap[equationString[0]];
+            if(equationString[0] == 'e') {
+                return exp(1);
+            }
+            return equationString[0] == 'x' ? x : y;
         } else if (EquationPieceTypeID == SOLVABLEEQUATION) {
             int index = 0;
-            for(EquationPiece *piece : equationPieces) {
-                if(operations[index] == '+') {
-                    result += piece->evaluate(variableMap);
-                } else if(operations[index] == '-') {
-                    result -= piece->evaluate(variableMap);
-                } else if(operations[index] == '*') {
-                    result *= piece->evaluate(variableMap);
-                } else if(operations[index] == '/') {
-                    result /= piece->evaluate(variableMap);
-                } if(operations[index] == '^') {
-                    result = pow(result,piece->evaluate(variableMap));
+            for (EquationPiece* piece : equationPieces) {
+                if (operations[index] == '+') {
+                    result += piece->evaluate(x, y);
+                } else if (operations[index] == '-') {
+                    result -= piece->evaluate(x, y);
+                } else if (operations[index] == '*') {
+                    result *= piece->evaluate(x, y);
+                } else if (operations[index] == '/') {
+                    result /= piece->evaluate(x, y);
+                } if (operations[index] == '^') {
+                    result = pow(result, piece->evaluate(x, y));
                 }
                 index++;
             }
@@ -139,11 +144,10 @@ class NewEquationParser {
 public:
     NewEquationParser(string equationString);
     ~NewEquationParser();
-    double evaluate(unordered_map<char, double>& varMap);
+    double evaluate(double x, double y);
 private:
     void translate(string equationString);
-    EquationPiece* equationRoot;
-    unordered_map<char, double> variableValuesMap;
+    EquationPiece* equationRoot;    
 };
 
 

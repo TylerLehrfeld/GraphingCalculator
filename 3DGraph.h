@@ -30,7 +30,7 @@ public:
 class ThreeDGraph {
 public:
     void init();
-    void addSurface(string equationString);
+    void addSurface(NewEquationParser* parser);
     Point projectToViewPlane(double x, double y, double z);
     void drawPoint(double x, double y, int r, int g, int b);
     
@@ -54,7 +54,8 @@ private:
     void drawAxis();
     void* pixels;
     int pitch;
-
+    vector<NewEquationParser*> equationList;
+    unordered_map<char, double> values;
     double XRANGE = 10;
     double YRANGE = 10;
     double ZRANGE = 10;
@@ -63,7 +64,6 @@ private:
     windowDefinition graphingWindow;
     double thetaX = M_PI / 4;
     double thetaZ = -M_PI / 4;
-    vector<string> equationList;
     string _equationString;
 };
 

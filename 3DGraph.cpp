@@ -120,9 +120,9 @@ void ThreeDGraph::beginGameLoop() {
                     cout << "Enter your equation with variables x and y:" << endl;
                     string equationString;
                     cin >> equationString;
-                    equationList.push_back(equationString);
-                    for (string equation : equationList) {
-                        addSurface(equation);
+                    equationList.push_back(new NewEquationParser(equationString));
+                    for (NewEquationParser* parser : equationList) {
+                        addSurface(parser);
                     }
                 } else if ((int)keyPressed == 79) {
                     rotate(0, .1);
@@ -138,12 +138,12 @@ void ThreeDGraph::beginGameLoop() {
                     zoom(1);
                 }
             }
-            //SDL_Delay(20);
+
         }
     }
 }
 
-void drawXContourLines(string equationString, SDL_Texture* texture, int pitch, void* pixels, ThreeDGraph* graph, int XRANGE, int YRANGE) {
+void drawXContourLines(NewEquationParser* parser, SDL_Texture* texture, int pitch, void* pixels, ThreeDGraph* graph, int XRANGE, int YRANGE) {
     //We want to create 10 contour X and Y contourlines for the range selected
     //so we choose 10 x points and evaluate all of the y points to get a contour line
     Point drawablePoint(0, 0, 0);
@@ -152,16 +152,14 @@ void drawXContourLines(string equationString, SDL_Texture* texture, int pitch, v
 
     for (double x = -(double)XRANGE; x <= (double)XRANGE; x += 10 * dx) {
         for (double y = -(double)YRANGE; y <= (double)YRANGE; y += dy) {
-            Equation eq;
-            eq.translate(equationString);
-            float result = eq.evaluate({ (float)x,(float)y });
+            float result = parser->evaluate(x, y);
             drawablePoint = graph->projectToViewPlane(x, y, result);
             graph->drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
         }
     }
 }
 
-void drawYContourLines(string equationString, SDL_Texture* texture, int pitch, void* pixels, ThreeDGraph* graph, int XRANGE, int YRANGE) {
+void drawYContourLines(NewEquationParser* parser, SDL_Texture* texture, int pitch, void* pixels, ThreeDGraph* graph, int XRANGE, int YRANGE) {
     //choose 10 y points and evaluate each at every x
     Point drawablePoint(0, 0, 0);
     double dx = (double)XRANGE * 2 / 1000;
@@ -169,9 +167,7 @@ void drawYContourLines(string equationString, SDL_Texture* texture, int pitch, v
 
     for (double y = -(double)YRANGE; y <= (double)YRANGE; y += 10 * dy) {
         for (double x = -(double)XRANGE; x <= (double)XRANGE; x += dx) {
-            Equation eq;
-            eq.translate(equationString);
-            float result = eq.evaluate({ (float)x,(float)y });
+            float result = parser->evaluate(x, y);
             drawablePoint = graph->projectToViewPlane(x, y, result);
             graph->drawPoint(drawablePoint._x, drawablePoint._y, 255, 255, 255);
         }
@@ -179,8 +175,7 @@ void drawYContourLines(string equationString, SDL_Texture* texture, int pitch, v
 }
 
 
-void ThreeDGraph::addSurface(string equationString) {
-
+void ThreeDGraph::addSurface(NewEquationParser* parser) {
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
         cout << "error in graph line: " << SDL_GetError() << endl;
         SDL_DestroyTexture(texture);
@@ -189,10 +184,10 @@ void ThreeDGraph::addSurface(string equationString) {
         SDL_Quit();
         return;
     }
-    
-    std::thread xThread(drawXContourLines, equationString, texture, pitch, pixels, this, XRANGE, YRANGE);
-    std::thread yThread(drawYContourLines, equationString, texture, pitch, pixels, this, XRANGE, YRANGE);
-    
+
+    std::thread xThread(drawXContourLines, parser, texture, pitch, pixels, this, XRANGE, YRANGE);
+    std::thread yThread(drawYContourLines, parser, texture, pitch, pixels, this, XRANGE, YRANGE);
+
     xThread.join();
     yThread.join();
     SDL_UnlockTexture(texture);
@@ -219,8 +214,8 @@ void ThreeDGraph::rotate(double xDegrees, double zDegrees) {
     thetaZ += zDegrees;
     setBounds();
     drawAxis();
-    for (string i : equationList) {
-        addSurface(i);
+    for (NewEquationParser* parser : equationList) {
+        addSurface(parser);
     }
 }
 
@@ -275,8 +270,8 @@ void ThreeDGraph::zoom(double zoomDiff) {
     ZRANGE += zoomDiff;
     setBounds();
     drawAxis();
-    for (string i : equationList) {
-        addSurface(i);
+    for (NewEquationParser* parser : equationList) {
+        addSurface(parser);
     }
 }
 

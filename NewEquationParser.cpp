@@ -13,25 +13,10 @@ NewEquationParser::~NewEquationParser() {
     delete equationRoot;
 }
 
-double NewEquationParser::evaluate(unordered_map<char, double> &varMap) {
-    for(auto i : varMap) {
-        variableValuesMap[i.first] = i.second;
-    }
-    return equationRoot->evaluate(variableValuesMap);
+double NewEquationParser::evaluate(double x, double y) {
+    return equationRoot->evaluate(x, y);
 }
 
 void NewEquationParser::translate(string _equationString) {
     equationRoot = new EquationPiece(_equationString);
-    variableValuesMap['e'] = exp(1);
-    for(char c : _equationString) {
-        size_t ind = nonVariableChars.find(c);
-        if(ind == std::string::npos) {
-            if(ind + 3 < _equationString.size() && ((c == 's' && _equationString.substr(ind, 3) != "sin") || (c == 'c' && _equationString.substr(ind, 3) != "cos"))) {
-                ind += 2;
-            } else {
-                variableValuesMap[c] = 0;
-            }
-        }
-    }
-    
 }
