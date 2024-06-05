@@ -56,9 +56,9 @@ public:
         }
         equationPieces.clear();
         operations.clear();
+        funcList.clear();
     }
     EquationPiece(string _equationString) {
-
         equationString = _equationString;
         size_t length = equationString.size();
         if (length == 0) {
@@ -69,6 +69,18 @@ public:
         //unwrap equation of parentheses
         while (equationString[0] == '(' && equationString[length - 1] == ')') {
             equationString = equationString.substr(1, length - 2);
+        }
+        while (
+            (
+                equationString.substr(0, 4) == "sin(" ||
+                equationString.substr(0, 4) == "cos(" ||
+                equationString.substr(0, 4) == "tan("
+                )
+            && equationString[length - 1 == ')']
+            ) {
+            funcList.emplace(funcList.begin(), equationString.substr(0, 3));
+            equationString = equationString.substr(4, length - 5);
+
         }
 
         vector<int> operationIndexes = getOperationIndexes(equationString);
@@ -104,10 +116,10 @@ public:
     double evaluate(double x, double y) {
         double result = 0;
         if (EquationPieceTypeID == VARIABLE) {
-            if(equationString[0] == 'e') {
-                return exp(1);
+            if (equationString[0] == 'e') {
+                result = exp(1);
             }
-            return equationString[0] == 'x' ? x : y;
+            result = equationString[0] == 'x' ? x : y;
         } else if (EquationPieceTypeID == SOLVABLEEQUATION) {
             int index = 0;
             for (EquationPiece* piece : equationPieces) {
@@ -124,16 +136,25 @@ public:
                 }
                 index++;
             }
-            return result;
+
         } else if (EquationPieceTypeID == NUMBER) {
-            return stod(equationString);
+            result = stod(equationString);
         }
-        //error
-        return -1;
+        for (string function : funcList) {
+            if (function == "sin") {
+                result = sin(result);
+            } else if (function == "cos") {
+                result = cos(result);
+            } else if (function == "tan") {
+                result = tan(result);
+            }
+        }
+        return result;
+
     };
 
     vector<char> operations;
-
+    vector<string> funcList;
     int VARIABLE = 1;
     int SOLVABLEEQUATION = 2;
     int NUMBER = 3;
@@ -147,7 +168,7 @@ public:
     double evaluate(double x, double y);
 private:
     void translate(string equationString);
-    EquationPiece* equationRoot;    
+    EquationPiece* equationRoot;
 };
 
 
