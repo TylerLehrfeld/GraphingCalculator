@@ -8,7 +8,7 @@
 using namespace std;
 
 int main()
-{
+{    
     int choice;
     cout << "1. 3D graph\n2. 2D graph" << endl;
     cin >> choice;

@@ -13,7 +13,7 @@ BSTFLAGS = -lboost_math_c99 -lboost_system
 # defines what operations to do when making all
 all: main
 
-%.o: %.cpp Graph.h statisticalOperations.h NewEquationParser.h 3DGraph.h
+%.o: %.cpp Graph.h statisticalOperations.h NewEquationParser.h 3DGraph.h drawTriangle.h
 	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS) $(BSTFLAGS)
 %.o: %.cpp Equation.h
 	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS)

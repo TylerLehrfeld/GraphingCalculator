@@ -42,7 +42,7 @@ private:
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Texture* texture;
-
+    void drawTriangle(Point one, Point two, Point three);
     void zoom(double zoomDiff);
     void* threadFunc1(void* args);
     void rotate(double xDegrees, double zDegrees);

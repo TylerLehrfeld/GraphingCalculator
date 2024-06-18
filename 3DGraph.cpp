@@ -1,10 +1,9 @@
 #include "3DGraph.h"
+#include "drawTriangle.h"
 #include <iostream>
 #include <sstream>
 #include <math.h>
 #include <thread>
-
-
 
 ThreeDGraph::ThreeDGraph() {
     pixels = nullptr;
