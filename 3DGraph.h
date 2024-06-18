@@ -33,7 +33,7 @@ public:
     void addSurface(NewEquationParser* parser);
     Point projectToViewPlane(double x, double y, double z);
     void drawPoint(double x, double y, int r, int g, int b);
-    
+    void test();
     ~ThreeDGraph();
     ThreeDGraph();
 
@@ -42,7 +42,6 @@ private:
     SDL_Window* window;
     SDL_Renderer* renderer;
     SDL_Texture* texture;
-    void drawTriangle(Point one, Point two, Point three);
     void zoom(double zoomDiff);
     void* threadFunc1(void* args);
     void rotate(double xDegrees, double zDegrees);
@@ -50,8 +49,9 @@ private:
     void setBounds();
     void initializeSDLVariables();
     void beginGameLoop();
-    //void drawX();
     void drawAxis();
+    void drawTriangle(Point one, Point two, Point three);
+    
     void* pixels;
     int pitch;
     vector<NewEquationParser*> equationList;

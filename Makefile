@@ -26,5 +26,9 @@ clean:
 	rm -f main
 	rm -f *.o
 
+test: test.o Graph.o Equation.o NewEquationParser.cpp 3DGraph.cpp
+	$(CC) $(CFLAGS) -o $@ $^ $(SDLFLAGS)
+	
+
 # all and clean are not compiling commands, just ones to help flow
 .PHONY: all clean 

@@ -6,13 +6,13 @@ double invSqrt(double x) {
 }
 
 void ThreeDGraph::drawTriangle(Point one, Point two, Point three) {
-
+    
     Point normal(0, 0, 1);
     Point vector1 = one - two;
     Point vector2 = one - three;
     Point crossProduct = (vector1 % vector2);
     Point normalizedCrossProduct = crossProduct * invSqrt(crossProduct * crossProduct);
-    Uint8 shade = (int)(normal * normalizedCrossProduct * 255);
+    Uint8 shade = abs((int)(normal * normalizedCrossProduct * 255));
 
     one = projectToViewPlane(one._x, one._y, one._z);
     one = graphingWindow.toPixel(one._x, one._y);
@@ -39,6 +39,7 @@ void ThreeDGraph::drawTriangle(Point one, Point two, Point three) {
             }
         }
     }
+    
 }
 
 

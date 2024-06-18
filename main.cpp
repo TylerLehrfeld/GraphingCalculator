@@ -7,14 +7,13 @@
 
 using namespace std;
 
-int main()
-{    
+int main() {
     int choice;
     cout << "1. 3D graph\n2. 2D graph" << endl;
     cin >> choice;
-    if(choice == 1) {
-    ThreeDGraph threeDimensionalGraph;
-    threeDimensionalGraph.init();
+    if (choice == 1) {
+        ThreeDGraph threeDimensionalGraph;
+        threeDimensionalGraph.init();
     } else {
         Graph graph;
         graph.init();

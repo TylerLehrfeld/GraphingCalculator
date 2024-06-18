@@ -99,14 +99,10 @@ void ThreeDGraph::init() {
     beginGameLoop();
 
     destroyGraph(texture, renderer, window);
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
 }
 
 void ThreeDGraph::beginGameLoop() {
+
     bool quit = false;
     while (!quit) {
         SDL_Event event;
@@ -183,17 +179,67 @@ void ThreeDGraph::addSurface(NewEquationParser* parser) {
         SDL_Quit();
         return;
     }
+    int numTriangles = 50;
+    Point pointList[numTriangles][numTriangles];
+    int Yind = 0;
+    int Xind = 0;
+    for (double y = -(double)YRANGE; y <= (double)YRANGE; y += 2 * YRANGE / (numTriangles - 1)) {
+        for (double x = -(double)XRANGE; x <= (double)XRANGE; x += 2 * XRANGE / (numTriangles - 1)) {
+            float result = parser->evaluate(x, y);
 
-    std::thread xThread(drawXContourLines, parser, texture, pitch, pixels, this, XRANGE, YRANGE);
-    std::thread yThread(drawYContourLines, parser, texture, pitch, pixels, this, XRANGE, YRANGE);
-
-    xThread.join();
-    yThread.join();
+            pointList[Yind][Xind]._x = x;
+            pointList[Yind][Xind]._y = y;
+            pointList[Yind][Xind]._z = result;
+            Xind++;
+        }
+        Xind = 0;
+        Yind++;
+    }
+    for (int y = 0; y < numTriangles - 1; y++) {
+        for (int x = 0; x < numTriangles - 1; x++) {
+            drawTriangle(pointList[y][x], pointList[y][x + 1], pointList[y + 1][x]);
+            drawTriangle(pointList[y][x + 1], pointList[y + 1][x], pointList[y + 1][x + 1]);
+        }
+    }
+    
     SDL_UnlockTexture(texture);
     SDL_RenderCopy(renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(renderer);
 }
 
+void ThreeDGraph::test() {
+    NewEquationParser* parser = new NewEquationParser("x^2/4");
+    if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
+        cout << "error in graph line: " << SDL_GetError() << endl;
+        SDL_DestroyTexture(texture);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return;
+    }
+    int numTriangles = 5;
+    Point pointList[numTriangles][numTriangles];
+    int Yind = 0;
+    int Xind = 0;
+    for (double y = -(double)YRANGE; y <= (double)YRANGE; y += 2 * YRANGE / (numTriangles - 1)) {
+        for (double x = -(double)XRANGE; x <= (double)XRANGE; x += 2 * XRANGE / (numTriangles - 1)) {
+            float result = parser->evaluate(x, y);
+
+            pointList[Yind][Xind]._x = x;
+            pointList[Yind][Xind]._y = y;
+            pointList[Yind][Xind]._z = result;
+            Xind++;
+        }
+        Xind = 0;
+        Yind++;
+    }
+
+    drawTriangle(pointList[0][0], pointList[0][1], pointList[1][0]);
+    SDL_UnlockTexture(texture);
+    SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+    SDL_RenderPresent(renderer);
+
+}
 Point ThreeDGraph::projectToViewPlane(double x, double y, double z) {
     Point pointToProject(x, y, z);
     Point projectedPoint = pointToProject - (Normal * ((Normal * (pointToProject)) * (1 / (Normal * Normal))));
