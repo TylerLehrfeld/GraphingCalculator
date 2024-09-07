@@ -1,6 +1,15 @@
 #include <iostream>
+#include <math.h>
+using std::cos;
+using std::sin;
+using std::pow;
+using std::sqrt; 
+using std::atan2;
+using std::cout;
+using std::endl;
 
-using namespace std;
+#ifndef POINT
+#define POINT
 
 class Point {
 public:
@@ -104,3 +113,5 @@ public:
     double _y;
     double _z;
 };
+
+#endif

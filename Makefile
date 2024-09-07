@@ -13,17 +13,18 @@ BSTFLAGS = -lboost_math_c99 -lboost_system
 # defines what operations to do when making all
 all: main
 
-%.o: %.cpp Graph.h statisticalOperations.h NewEquationParser.h 3DGraph.h drawTriangle.h
+%.o: %.cpp Graph.h statisticalOperations.h NewEquationParser.h Triangle.h 3DGraph.h 
 	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS) $(BSTFLAGS)
 %.o: %.cpp Equation.h
 	$(CC) $(CFLAGS) -c -o $@ $< $(SDLFLAGS)
 
 # makes the main file with g++, flags amd target file of main.cpp. Outputs executable to main
-main: main.o Graph.o Equation.o NewEquationParser.cpp 3DGraph.cpp
+main: main.o Graph.o Equation.o NewEquationParser.cpp Triangle.cpp 3DGraph.cpp 
 	$(CC) $(CFLAGS) -o $@ $^ $(SDLFLAGS)
 # gets rid of main executable and all -o files
 clean:
 	rm -f main
+	rm -f test
 	rm -f *.o
 
 test: test.o Graph.o Equation.o NewEquationParser.cpp 3DGraph.cpp

@@ -4,6 +4,9 @@
 #include "Equation.h"
 #include "NewEquationParser.h"
 #include "Point.h"
+#include "Triangle.h"
+#include "Pixel.h"
+
 #ifndef THREE_D_GRAPH
 #define THREE_D_GRAPH
 
@@ -36,7 +39,7 @@ public:
     void test();
     ~ThreeDGraph();
     ThreeDGraph();
-
+    Point Normal;
 
 private:
     SDL_Window* window;
@@ -45,13 +48,13 @@ private:
     void zoom(double zoomDiff);
     void* threadFunc1(void* args);
     void rotate(double xDegrees, double zDegrees);
-    Point Normal;
+    ;
     void setBounds();
     void initializeSDLVariables();
     void beginGameLoop();
     void drawAxis();
-    void drawTriangle(Point one, Point two, Point three);
-    
+    void drawTriangle(Point one, Point two, Point three, Pixel[1000][1000], uint8_t rank);
+
     void* pixels;
     int pitch;
     vector<NewEquationParser*> equationList;
@@ -61,10 +64,14 @@ private:
     double ZRANGE = 10;
     double WINDOW_WIDTH = 1000;
     double WINDOW_HEIGHT = 1000;
+    void transferPixels(Pixel[1000][1000]);
     windowDefinition graphingWindow;
     double thetaX = M_PI / 4;
     double thetaZ = -M_PI / 4;
     string _equationString;
+    struct comp {
+
+    };
 };
 
 

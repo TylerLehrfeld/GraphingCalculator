@@ -1,9 +1,10 @@
 #include "3DGraph.h"
-#include "drawTriangle.h"
 #include <iostream>
 #include <sstream>
 #include <math.h>
 #include <thread>
+#include <queue>
+
 
 ThreeDGraph::ThreeDGraph() {
     pixels = nullptr;
@@ -16,6 +17,47 @@ ThreeDGraph::ThreeDGraph() {
 ThreeDGraph::~ThreeDGraph() {
     equationList.clear();
 }
+
+double invSqrt(double x) {
+    return 1 / sqrt(x);
+}
+
+void ThreeDGraph::drawTriangle(Point one, Point two, Point three, Pixel[1000][1000], uint8_t rank) {
+
+    Point normal(0, 0, 1);
+    Point vector1 = one - two;
+    Point vector2 = one - three;
+    Point crossProduct = (vector1 % vector2);
+    Point normalizedCrossProduct = crossProduct * invSqrt(crossProduct * crossProduct);
+    Uint8 shade = 55 + abs((int)(normal * normalizedCrossProduct * 200));
+
+    one = projectToViewPlane(one._x, one._y, one._z);
+    one = graphingWindow.toPixel(one._x, one._y);
+    two = projectToViewPlane(two._x, two._y, two._z);
+    two = graphingWindow.toPixel(two._x, two._y);
+    three = projectToViewPlane(three._x, three._y, three._z);
+    three = graphingWindow.toPixel(three._x, three._y);
+    int minX = min(one._x, min(two._x, three._x));
+    int minY = min(one._y, min(two._y, three._y));
+    int maxX = max(one._x, max(two._x, three._x));
+    int maxY = max(one._y, max(two._y, three._y));
+
+    for (int x = minX; x <= maxX; x++) {
+        for (int y = minY; y <= maxY; y++) {
+            Point p(x, y, 0);
+            float crossone = ((p - one) % (two - one))._z;
+            float crosstwo = ((p - two) % (three - two))._z;
+            float crossthree = ((p - three) % (one - three))._z;
+            bool inTriangle = ((crossone > 0) && (crosstwo > 0) && (crossthree > 0)) ||
+                ((crossone < 0) && (crosstwo < 0) && (crossthree < 0));
+            if (!(((int)x <= 0 || (int)x >= WINDOW_WIDTH || (int)y <= 0 || (int)y > WINDOW_WIDTH) || !inTriangle)) {
+                Uint32* pixel = static_cast<Uint32*>(pixels) + (int)(x)+(int)(WINDOW_HEIGHT - y) * (pitch / sizeof(Uint32));
+                *pixel = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_ARGB8888), shade, shade, shade);
+            }
+        }
+    }
+}
+
 
 void ThreeDGraph::drawPoint(double x, double y, int r, int g, int b) {
     Point pixelPoint = graphingWindow.toPixel(x, y);
@@ -169,6 +211,9 @@ void drawYContourLines(NewEquationParser* parser, SDL_Texture* texture, int pitc
     }
 }
 
+void ThreeDGraph::transferPixels(Pixel rankedPixelArray[1000][1000]) {
+
+}
 
 void ThreeDGraph::addSurface(NewEquationParser* parser) {
     if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
@@ -179,7 +224,7 @@ void ThreeDGraph::addSurface(NewEquationParser* parser) {
         SDL_Quit();
         return;
     }
-    int numTriangles = 50;
+    int numTriangles = 25;
     Point pointList[numTriangles][numTriangles];
     int Yind = 0;
     int Xind = 0;
@@ -195,17 +240,34 @@ void ThreeDGraph::addSurface(NewEquationParser* parser) {
         Xind = 0;
         Yind++;
     }
+    auto comp = [this](Triangle a, Triangle b) {return a.dist(this->Normal) < b.dist(this->Normal);};
+    std::priority_queue < Triangle, vector<Triangle>, decltype(comp)> triangleList(comp);
+
     for (int y = 0; y < numTriangles - 1; y++) {
         for (int x = 0; x < numTriangles - 1; x++) {
-            drawTriangle(pointList[y][x], pointList[y][x + 1], pointList[y + 1][x]);
-            drawTriangle(pointList[y][x + 1], pointList[y + 1][x], pointList[y + 1][x + 1]);
+            Triangle tri1(pointList[y][x], pointList[y][x + 1], pointList[y + 1][x]);
+            triangleList.push(tri1);
+            Triangle tri2(pointList[y][x + 1], pointList[y + 1][x], pointList[y + 1][x + 1]);
+            triangleList.push(tri2);
         }
     }
-    
+    Pixel Pixels[(int)WINDOW_WIDTH][(int)WINDOW_HEIGHT];
+    vector<Triangle> triangleVector;
+    for (int i = 0; i < triangleList.size(); i++) {
+        triangleVector.push_back(triangleList.top());
+        triangleList.pop();
+    }
+    for (int i = 0; i < triangleVector.size(); i++) {
+        drawTriangle(*(triangleVector[i].A), *(triangleVector[i].B), *(triangleVector[i].C), Pixels, i);
+    }
+
+    transferPixels(Pixels);
     SDL_UnlockTexture(texture);
     SDL_RenderCopy(renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(renderer);
 }
+
+
 
 void ThreeDGraph::test() {
     NewEquationParser* parser = new NewEquationParser("x^2/4");
